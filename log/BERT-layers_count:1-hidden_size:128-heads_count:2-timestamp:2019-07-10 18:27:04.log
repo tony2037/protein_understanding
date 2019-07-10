@@ -1,0 +1,50 @@
+[INFO] 2019-07-10 18:27:04 > Run name : None
+[INFO] 2019-07-10 18:27:04 > None
+[INFO] 2019-07-10 18:27:04 > Constructing dictionaries...
+[INFO] 2019-07-10 18:27:04 > dictionary vocabulary : 11 tokens
+[INFO] 2019-07-10 18:27:04 > Loading datasets...
+[INFO] 2019-07-10 18:27:04 > Train dataset size : 2
+[INFO] 2019-07-10 18:27:04 > Building model...
+[INFO] 2019-07-10 18:27:04 > BERT(
+  (encoder): TransformerEncoder(
+    (encoder_layers): ModuleList(
+      (0): TransformerEncoderLayer(
+        (self_attention_layer): Sublayer(
+          (sublayer): MultiHeadAttention(
+            (query_projection): Linear(in_features=128, out_features=128, bias=True)
+            (key_projection): Linear(in_features=128, out_features=128, bias=True)
+            (value_projection): Linear(in_features=128, out_features=128, bias=True)
+            (final_projection): Linear(in_features=128, out_features=128, bias=True)
+            (dropout): Dropout(p=0.1)
+            (softmax): Softmax()
+          )
+          (layer_normalization): LayerNormalization()
+        )
+        (pointwise_feedforward_layer): Sublayer(
+          (sublayer): PointwiseFeedForwardNetwork(
+            (feed_forward): Sequential(
+              (0): Linear(in_features=128, out_features=128, bias=True)
+              (1): Dropout(p=0.1)
+              (2): GELU()
+              (3): Linear(in_features=128, out_features=128, bias=True)
+              (4): Dropout(p=0.1)
+            )
+          )
+          (layer_normalization): LayerNormalization()
+        )
+        (dropout): Dropout(p=0.1)
+      )
+    )
+  )
+  (token_embedding): Embedding(11, 128)
+  (positional_embedding): PositionalEmbedding(
+    (positional_embedding): Embedding(512, 128)
+  )
+  (segment_embedding): SegmentEmbedding(
+    (segment_embedding): Embedding(2, 128)
+  )
+  (token_prediction_layer): Linear(in_features=128, out_features=11, bias=True)
+  (classification_layer): Linear(in_features=128, out_features=2, bias=True)
+)
+[INFO] 2019-07-10 18:27:04 > 168461 parameters
+[INFO] 2019-07-10 18:27:04 > Start training...
