@@ -95,10 +95,19 @@ def split_train_val(prepared_documents_path, train_path, val_path, **_):
 
 def build_dictionary(train_path, dictionary_path, **_):
 
+    """
     def token_generator(data_path):
         with open(data_path) as file:
             for document in file:
                 for sentence in document.strip().split('|'):
+                    for token in sentence.split():
+                        yield token
+    """
+
+    def token_generator(data_path):
+        with open(data_path) as file:
+            for document in file:
+                for sentence in document.strip():
                     for token in sentence.split():
                         yield token
 
