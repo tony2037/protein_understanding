@@ -1,1 +1,4 @@
-A T C G| S T A B
+A T C G
+S T A B
+C G A B C T A
+S S S
