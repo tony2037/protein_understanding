@@ -1,1 +1,4 @@
 checkpoint/
+__pycache__/
+dic/
+data/
