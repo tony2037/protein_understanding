@@ -3,13 +3,14 @@ import torch
 import datetime
 
 from bert.preprocess.preprocess import build_dictionary
-from bert.train.train import pretrain
+from bert.train.train import finetune
 
+pretrained_checkpoint = 'checkpoint/model.pkl'
 data_dir = None
-train_dir = 'data/train.txt'
+train_path = 'data/train.txt'
 val_path = 'data/val.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = 'checkpoint/model.pkl'
+checkpoint_dir = 'checkpoint/finetune.pkl'
 dataset_limit = None
 epochs = 100
 batch_size = 16
@@ -33,10 +34,10 @@ log_output = 'log/%s.log' % run_name
 
 
 if __name__ == '__main__':
-    build_dictionary('data/train.txt', 'dic/dic.txt')
-    pretrain(data_dir, train_dir, val_path, dictionary_path,\
-            dataset_limit, vocabulary_size, batch_size, max_len, epochs,\
-            clip_grads, device, layers_count, hidden_size, heads_count,\
+    finetune(pretrained_checkpoint,\
+            data_dir, train_path, val_path, dictionary_path,\
+            vocabulary_size, batch_size, max_len, epochs,\
+            lr, clip_grads, device, layers_count, hidden_size, heads_count,\
             d_ff, dropout_prob, log_output, checkpoint_dir, print_every,\
             save_every, config
             )
