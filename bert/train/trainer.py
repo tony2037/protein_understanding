@@ -105,11 +105,11 @@ class Trainer:
             if epoch % self.print_every == 0 and self.logger:
                 per_second = len(self.train_dataloader.dataset) / ((epoch_end_time - epoch_start_time).seconds + 1)
                 current_lr = self.optimizer.param_groups[0]['lr']
-                log_message = LOG_FORMAT.format(epoch=epoch,
+                log_message = LOG_FORMAT.format(epoch=str(epoch),
                                                 progress=epoch / epochs,
                                                 per_second=per_second,
-                                                train_loss=train_epoch_loss,
-                                                val_loss=val_epoch_loss,
+                                                train_loss=str(train_epoch_loss),
+                                                val_loss=str(val_epoch_loss),
                                                 train_metrics=[round(metric, 4) for metric in train_epoch_metrics],
                                                 val_metrics=[round(metric, 4) for metric in val_epoch_metrics],
                                                 current_lr=current_lr,
@@ -123,10 +123,11 @@ class Trainer:
 
     def _save_model(self, epoch, train_epoch_loss, val_epoch_loss, train_epoch_metrics, val_epoch_metrics):
 
+        print(val_epoch_metrics)
         checkpoint_name = SAVE_FORMAT.format(
             epoch=epoch,
             val_loss=val_epoch_loss,
-            val_metrics='-'.join(['{:<.3}'.format(v) for v in val_epoch_metrics])
+            val_metrics='-'.join(['{:<.3}'.format(float(v)) for v in val_epoch_metrics])
         )
 
         checkpoint_output_path = join(self.checkpoint_dir, checkpoint_name)
