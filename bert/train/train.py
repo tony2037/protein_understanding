@@ -1,6 +1,6 @@
 from bert.preprocess.dictionary import IndexDictionary
 from .model.bert import build_model, FineTuneModel
-from .loss_models import MLMNSPLossModel, ClassificationLossModel
+from .loss_models import MLMNSPLossModel, ClassificationLossModel, MLMLossModel
 from .metrics import mlm_accuracy, nsp_accuracy, classification_accuracy
 from .datasets.pretraining import PairedDataset
 from .datasets.classification import SST2IndexedDataset
@@ -66,7 +66,7 @@ def pretrain(data_dir, train_path, val_path, dictionary_path,
     logger.info('{parameters_count} parameters'.format(
         parameters_count=sum([p.nelement() for p in model.parameters()])))
 
-    loss_model = MLMNSPLossModel(model)
+    loss_model = MLMLossModel(model)
     if torch.cuda.device_count() > 1:
         loss_model = DataParallel(loss_model, output_device=1)
 
