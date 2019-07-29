@@ -1,23 +1,22 @@
-
 import torch
 import datetime
 
 from bert.preprocess.preprocess import build_dictionary
-from bert.train.train import finetune
+from bert.train.train import finetuneSPS
 
-pretrained_checkpoint = 'checkpoint/model.pkl'
+pretrained_checkpoint = 'checkpoint/model.pkl/epoch=1900-val_loss=2.71-val_metrics=0.184-0.473.pth'
 data_dir = None
-train_path = 'data/train.txt'
-val_path = 'data/val.txt'
+train_path = 'data/finetune/train.txt'
+val_path = 'data/finetune/val.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = 'checkpoint/finetune.pkl'
+checkpoint_dir = 'checkpoint/FinetuneModel'
 dataset_limit = None
 epochs = 100
 batch_size = 16
 print_every = 1
 save_every = 10
 vocabulary_size = 30000
-max_len = 512
+max_len = 1024
 lr = 0.001
 clip_grads = 'store_true'
 layers_count = 1
@@ -34,10 +33,10 @@ log_output = 'log/%s.log' % run_name
 
 
 if __name__ == '__main__':
-    finetune(pretrained_checkpoint,\
+    finetuneSPS(pretrained_checkpoint,\
             data_dir, train_path, val_path, dictionary_path,\
             vocabulary_size, batch_size, max_len, epochs,\
             lr, clip_grads, device, layers_count, hidden_size, heads_count,\
             d_ff, dropout_prob, log_output, checkpoint_dir, print_every,\
-            save_every, config
+            save_every, config, num_classes=8
             )
