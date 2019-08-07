@@ -1,4 +1,4 @@
-
+import random
 
 class SST2IndexedDataset:
 
@@ -12,6 +12,7 @@ class SST2IndexedDataset:
                 tokenized_sentence, sentiment = line.strip().split('\t')
                 indexed_sentence = [dictionary.token_to_index(token) for token in tokenized_sentence.split()]
                 self.data.append((indexed_sentence, int(sentiment)))
+            random.shuffle(self.data)
 
     def __getitem__(self, item):
         indexed_text, sentiment = self.data[item]
