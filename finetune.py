@@ -4,14 +4,14 @@ import datetime
 from bert.preprocess.preprocess import build_dictionary
 from bert.train.train import finetuneSPS
 
-pretrained_checkpoint = 'data/signal-peptides/epoch=12560-val_loss=2.73-val_metrics=0.183-0.502.pth'
+pretrained_checkpoint = 'data/signal-peptides/epoch=100-val_loss=2.71-val_metrics=0.183-0.5.pth'
 data_dir = None
 train_path = 'data/signal-peptides/SignalP_train_euk.txt'
 val_path = 'data/signal-peptides/SignalP_val_euk.txt'
 dictionary_path = 'dic/dic.txt'
 checkpoint_dir = 'data/signal-peptides/FinetuneModel'
 dataset_limit = None
-epochs = 100
+epochs = 10000
 batch_size = 16
 print_every = 1
 save_every = 10
@@ -38,5 +38,5 @@ if __name__ == '__main__':
             vocabulary_size, batch_size, max_len, epochs,\
             lr, clip_grads, device, layers_count, hidden_size, heads_count,\
             d_ff, dropout_prob, log_output, checkpoint_dir, print_every,\
-            save_every, config, num_classes=8
+            save_every, config, num_classes=3
             )
