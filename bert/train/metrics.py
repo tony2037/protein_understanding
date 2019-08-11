@@ -1,6 +1,7 @@
 from bert.preprocess import PAD_INDEX
 
 import numpy as np
+from sklearn.metrics import matthews_corrcoef, f1_score
 
 
 def mlm_accuracy(predictions, targets):
@@ -26,3 +27,9 @@ def nsp_accuracy(predictions, targets):
 def classification_accuracy(predictions, targets):
         corrects = np.equal(predictions, targets)
         return corrects.mean()
+
+def classification_MCC(predictions, targets):
+	return matthews_corrcoef(targets, predictions)
+
+def classification_F1(predictions, targets):
+	return f1_score(targets, predictions)
