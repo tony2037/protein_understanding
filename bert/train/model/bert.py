@@ -5,7 +5,7 @@ from ..utils.pad import pad_masking
 from torch import nn
 
 
-def build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size):
+def build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, forward_encoded=False):
     token_embedding = nn.Embedding(num_embeddings=vocabulary_size, embedding_dim=hidden_size)
     positional_embedding = PositionalEmbedding(max_len=max_len, hidden_size=hidden_size)
     segment_embedding = SegmentEmbedding(hidden_size=hidden_size)
@@ -23,7 +23,8 @@ def build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_
         positional_embedding=positional_embedding,
         segment_embedding=segment_embedding,
         hidden_size=hidden_size,
-        vocabulary_size=vocabulary_size)
+        vocabulary_size=vocabulary_size,
+        forward_encoded=forward_encoded)
 
     return bert
 
@@ -46,7 +47,7 @@ class FineTuneModel(nn.Module):
 
 class BERT(nn.Module):
 
-    def __init__(self, encoder, token_embedding, positional_embedding, segment_embedding, hidden_size, vocabulary_size):
+    def __init__(self, encoder, token_embedding, positional_embedding, segment_embedding, hidden_size, vocabulary_size, forward_encoded = False):
         super(BERT, self).__init__()
 
         self.encoder = encoder
@@ -55,6 +56,7 @@ class BERT(nn.Module):
         self.segment_embedding = segment_embedding
         self.token_prediction_layer = nn.Linear(hidden_size, vocabulary_size)
         self.classification_layer = nn.Linear(hidden_size, 2)
+        self.forward_encoded = forward_encoded
 
     def forward(self, inputs):
         sequence, segment = inputs
@@ -68,4 +70,7 @@ class BERT(nn.Module):
         token_predictions = self.token_prediction_layer(encoded_sources)
         classification_embedding = encoded_sources[:, 0, :]
         classification_output = self.classification_layer(classification_embedding)
-        return token_predictions, classification_output
+        if not self.forward_encoded:
+            return token_predictions, classification_output
+        else:
+            return token_predictions, classification_output, encoded_sources
