@@ -1,4 +1,5 @@
 from torch import nn
+from .utils import conv1d, avg_pool, deconv1d, conv1x1_softmax
 
 
 class sigunet(nn.Module):
