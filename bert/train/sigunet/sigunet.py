@@ -1,18 +1,19 @@
+import torch
 from torch import nn
 from .utils import conv1d, avg_pool, deconv1d, conv1x1_softmax
 
 
 class sigunet(nn.Module):
 
-    def __init__(self, model, m, n, ConvKernel_size, PoolingKernel_size):
-        super(unet, self).__init__()
+    def __init__(self, model, m, n, kernel_size, pool_size, threshold):
+        super(sigunet, self).__init__()
 
         self.model = model
         self.m = m
         self.n = n
-        self.ConvKernel_size = ConvKernel_size
-        self.PoolingKernel_size = PoolingKernel_size
-        self.Pooling = nn.AvgPool1d(self.PoolingKernel_size, stride = 1)
+        self.kernel_size = kernel_size
+        self.pool_size = pool_size
+        self.threshold = threshold
         self.loss_functioin = nn.CrossEntropyLoss()
 
     def forward(self, inputs, targets):
@@ -26,38 +27,62 @@ class sigunet(nn.Module):
         # encoded_sources: (batch_size, embed_size, seq_len)
         # https://discuss.pytorch.org/t/swap-axes-in-pytorch/970/2
         sigunet_input = encoded_sources.permute(0, 2, 1)
-        level_1 = nn.Conv1d(sigunet_input.shape[1], self.m, self.ConvKernel_size)(sigunet_input)
-        level_1 = nn.Conv1d(self.m, self.m, self.ConvKernel_size)(level_1)
 
-        level_2 = self.Pooling(level_1)
-        level_2 = nn.Conv1d(level_2.shape[1], self.m + self.n, self.ConvKernel_size)(level_2)
-        level_2 = nn.Conv1d(self.m + self.n, self.m + self.n, self.ConvKernel_size)(level_2)
+        out = conv1d(sigunet_input, channels=self.m, kernel_size=self.kernel_size)
+        pass1 = conv1d(out, channels=self.m, kernel_size=self.kernel_size)
+        out = avg_pool(pass1, pool_size=2)
 
-        level_3 = self.Pooling(level_2)
-        level_3 = nn.Conv1d(level_3.shape[1], self.m + 2 * self.n, self.ConvKernel_size)(level_3)
-        level_3 = nn.Conv1d(self.m + 2 * self.n, self.m + 2 * self.n, self.ConvKernel_size)(level_3)
+        out = conv1d(out, channels=(self.m + self.n), kernel_size=self.kernel_size)
+        pass2 = conv1d(out, channels=(self.m + self.n), kernel_size=self.kernel_size)
+        out = avg_pool(pass2, pool_size=2)
 
-        level_4 = self.Pooling(level_3)
-        level_4 = nn.Conv1d(level_4.shape[1], self.m + 3 * self.n, self.ConvKernel_size)(level_4)
-        level_4 = nn.Conv1d(self.m + 3 * self.n, self.m + 3 * self.n, self.ConvKernel_size)(level_4)
+        out = conv1d(out, channels=(self.m + 2 * self.n), kernel_size=self.kernel_size)
+        pass3 = conv1d(out, channels=(self.m + 2 * self.n), kernel_size=self.kernel_size)
+        out = avg_pool(pass3, pool_size=2)
 
-        # Not sure about the kernel size applied here
-        relevel_3 = nn.ConvTranspose1d(level_4[1], self.m + 2 * self.n, self.PoolingKerne_size)(level_4)
-        relevel_3 = relevel_3 + level_3
-        relevel_3 = nn.Conv1d(2 * self.m + 4 * self.n, self.m + 2 * self.n, self.ConvKernel_size)(relevel_3)
-        relevel_3 = nn.Conv1d(self.m + 2 * self.n, self.m + 2 * self.n, self.ConvKernel_size)(relevel_3)
+        out = conv1d(out, channels=(self.m + 3 * self.n), kernel_size=self.kernel_size)
+        out = conv1d(out, channels=(self.m + 3 * self.n), kernel_size=self.kernel_size)
+        out = deconv1d(out, channels=(self.m + 2 * self.n), out_length=pass3.shape[2], kernel_size=self.kernel_size, stride=2)
 
-        relevel_2 = nn.ConvTranspose1d(relevel_3[1], self.m +  * self.n, self.PoolingKerne_size)(relevel_3)
-        relevel_2 = relevel_2 + level_2
-        relevel_2 = nn.Conv1d(2 * self.m + 2 * self.n, self.m + self.n, self.ConvKernel_size)(relevel_2)
-        relevel_2 = nn.Conv1d(self.m + self.n, self.m + self.n, self.ConvKernel_size)(relevel_2)
+        out = torch.cat((out, pass3), 1)
 
-        relevel_1 = nn.ConvTranspose1d(relevel_2[1], self.m, self.PoolingKerne_size)(relevel_2)
-        relevel_1 = relevel_1 + level_1
-        relevel_1 = nn.Conv1d(2 * self.m, self.m, self.ConvKernel_size)(relevel_1)
-        relevel_1 = nn.Conv1d(self.m, self.m, self.ConvKernel_size)(relevel_1)
-        outputs = nn.Conv1d(self.m, 3, 1)(relevel_1)
+        out = conv1d(out, channels=(self.m + 2 * self.n), kernel_size=self.kernel_size)
+        out = conv1d(out, channels=(self.m + 2 * self.n), kernel_size=self.kernel_size)
+        out = deconv1d(out, channels=(self.m + self.n), out_length=pass2.shape[2], kernel_size=self.kernel_size, stride=2)
 
-        loss = self.loss_function(outputs, targets)
+        out = torch.cat((out, pass2), 1)
 
-        return predictions, loss.unsqueeze(dim=0)
+        out = conv1d(out, channels=(self.m + self.n), kernel_size=self.kernel_size)
+        out = conv1d(out, channels=(self.m + self.n), kernel_size=self.kernel_size)
+        out = deconv1d(out, channels=(self.m), out_length=pass1.shape[2], kernel_size=self.kernel_size, stride=2)
+
+        out = torch.cat((out, pass1), 1)
+
+        out = conv1d(out, channels=self.m, kernel_size=self.kernel_size)
+        out = conv1d(out, channels=self.m, kernel_size=self.kernel_size)
+        out = conv1d(out, channels=3, kernel_size=1, act=nn.Softmax)
+
+        # Make it (batch_size, length, channels)
+        out = out.permute(0, 2, 1)
+        out, _ = torch.max(out, 2)
+
+        loss = self.loss_function(out, targets)
+
+        return out, loss.unsqueeze(dim=0)
+
+    def pass_threshold(self, input):
+        consecutive = 0
+        predict = []
+        for seq in input:
+            predict.append(0)
+            for val in seq:
+                if val >= self.threshold:
+                    consecutive += 1
+                else:
+                    consecutive = 0
+                if consecutive >= 4:
+                    consecutive = 0
+                    predict[-1](1)
+                    break
+
+        return torch.tensor(predict)
