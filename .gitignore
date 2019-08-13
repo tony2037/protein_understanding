@@ -4,3 +4,4 @@ dic/
 data/
 requirements.txt
 log/
+test.py
