@@ -64,6 +64,7 @@ class sigunet(nn.Module):
 
         # Make it (batch_size, length, channels)
         out = out.permute(0, 2, 1)
+        # errorenous
         out, _ = torch.max(out, 2)
 
         loss = self.loss_function(out, targets)
@@ -71,18 +72,18 @@ class sigunet(nn.Module):
         return out, loss.unsqueeze(dim=0)
 
     def pass_threshold(self, input):
-        consecutive = 0
+        # [batch_size, length, 1]
         predict = []
         for seq in input:
             predict.append(0)
+            consecutive = 0
             for val in seq:
                 if val >= self.threshold:
                     consecutive += 1
                 else:
                     consecutive = 0
                 if consecutive >= 4:
-                    consecutive = 0
-                    predict[-1](1)
+                    predict[-1] = 1
                     break
 
         return torch.tensor(predict)
