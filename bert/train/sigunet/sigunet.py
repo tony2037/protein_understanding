@@ -5,7 +5,7 @@ from .utils import conv1d, avg_pool, deconv1d, conv1x1_softmax
 
 class sigunet(nn.Module):
 
-    def __init__(self, model, m, n, kernel_size, pool_size, threshold):
+    def __init__(self, model, m, n, kernel_size, pool_size, threshold, device):
         super(sigunet, self).__init__()
 
         self.model = model
@@ -14,7 +14,8 @@ class sigunet(nn.Module):
         self.kernel_size = kernel_size
         self.pool_size = pool_size
         self.threshold = threshold
-        self.loss_functioin = nn.CrossEntropyLoss()
+        self.device = device
+        self.loss_function = nn.CrossEntropyLoss()
 
     def forward(self, inputs, targets):
 
@@ -60,30 +61,34 @@ class sigunet(nn.Module):
 
         out = conv1d(out, channels=self.m, kernel_size=self.kernel_size)
         out = conv1d(out, channels=self.m, kernel_size=self.kernel_size)
-        out = conv1d(out, channels=3, kernel_size=1, act=nn.Softmax)
+        out = conv1d(out, channels=3, kernel_size=1, act=nn.Softmax())
 
         # Make it (batch_size, length, channels)
         out = out.permute(0, 2, 1)
         # errorenous
-        out, _ = torch.max(out, 2)
+        #out, _ = torch.max(out, 2)
+        prediction = self.pass_threshold(out)
 
-        loss = self.loss_function(out, targets)
+        mean_out = out.mean(dim=1)
+        mean_out.requires_grad = True
+        loss = self.loss_function(mean_out, targets)
 
-        return out, loss.unsqueeze(dim=0)
+        return prediction, loss.unsqueeze(dim=0)
 
     def pass_threshold(self, input):
         # [batch_size, length, 1]
         predict = []
         for seq in input:
-            predict.append(0)
+            predict.append(0.)
             consecutive = 0
             for val in seq:
-                if val >= self.threshold:
+                if val[2] >= self.threshold:
                     consecutive += 1
                 else:
                     consecutive = 0
                 if consecutive >= 4:
-                    predict[-1] = 1
+                    predict[-1] = 1.
                     break
+        predict = torch.FloatTensor(predict).cuda()
 
-        return torch.tensor(predict)
+        return predict
