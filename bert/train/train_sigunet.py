@@ -66,7 +66,7 @@ def finetuneSigunet(pretrained_checkpoint,
     pretrained_model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, forward_encoded=True)
     pretrained_model = stateLoading(pretrained_model, pretrained_checkpoint)
 
-    model = sigunet(model=pretrained_model, m=28, n=4, kernel_size=7, pool_size=2, threshold=0.1, device=device).cuda()
+    model = sigunet(model=pretrained_model, m=28, n=4, kernel_size=7, pool_size=2, threshold=0.1, device=device)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(
