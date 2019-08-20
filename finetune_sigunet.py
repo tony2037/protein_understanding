@@ -5,8 +5,8 @@ import datetime
 
 pretrained_checkpoint = 'data/signal-peptides/epoch=100-val_loss=2.71-val_metrics=0.183-0.5.pth'
 data_dir = None
-train_path = 'data/signal-peptides/SignalP_train_euk.txt'
-val_path = 'data/signal-peptides/SignalP_val_euk.txt'
+train_path = 'data/signal-peptides/SignalP_train_euk_96.txt'
+val_path = 'data/signal-peptides/SignalP_val_euk_96.txt'
 dictionary_path = 'dic/dic.txt'
 checkpoint_dir = 'data/signal-peptides/FinetuneModel'
 dataset_limit = None
