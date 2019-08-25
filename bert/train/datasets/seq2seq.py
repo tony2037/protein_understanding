@@ -19,11 +19,12 @@ class Seq2SeqDataset:
 
     def __getitem__(self, item):
 
-        pass
+        indexed_sentence, label = self.data[item]
+        segment = [0] * len(indexed_text)
+        return (indexed_sentence, segment), label
 
     def __len__(self):
-
-        pass
+        return len(self.data)
 
     def onehot(self, index):
 
