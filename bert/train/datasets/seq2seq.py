@@ -1,10 +1,21 @@
 
 
-class Seq2Seq:
+class Seq2SeqDataset:
 
     def __init__(self, data_path, dictionary):
 
-        pass
+        self.data = []
+        self.dimension = None
+        with open(data_path) as file:
+            assert file.readline() == 'sentence\tlabel\n'
+            self.dimension = int(file.readline())
+
+            for line in file:
+                tokenized_sentence, answer = line.strip().split('|')
+                indexed_sentence = [dictionary.token_to_index(token) for token in tokenized_sentence.split()]
+                label = [self.onehot(int(l)) for l in answer.split()]
+                assert len(indexed_sentence) == len(label)
+                self.data.append((indexed_sentence, label))
 
     def __getitem__(self, item):
 
@@ -13,3 +24,9 @@ class Seq2Seq:
     def __len__(self):
 
         pass
+
+    def onehot(self, index):
+
+        tmp = [0 for _ in range(self.dimension)]
+        tmp[index] = 1
+        return tmp
