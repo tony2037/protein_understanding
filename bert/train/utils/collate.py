@@ -55,3 +55,7 @@ def classification_collate_function(batch):
     count = len(labels)
 
     return (padded_sequences, padded_segments), labels, count
+
+def seq2seq_collate_function(batch):
+
+    pass
