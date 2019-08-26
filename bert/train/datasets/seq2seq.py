@@ -20,7 +20,7 @@ class Seq2SeqDataset:
     def __getitem__(self, item):
 
         indexed_sentence, label = self.data[item]
-        segment = [0] * len(indexed_text)
+        segment = [0] * len(indexed_sentence)
         return (indexed_sentence, segment), label
 
     def __len__(self):
