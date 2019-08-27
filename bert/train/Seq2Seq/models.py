@@ -10,6 +10,9 @@ class Seq2Seq(nn.Module):
         self.model = model
         self.device = device
 
-    def forward(self, input):
+    def forward(self, input, targets):
+
+        x = self.model(input)
+        assert x.shape[2] == 128
 
         return

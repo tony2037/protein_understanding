@@ -29,6 +29,8 @@ run_name = 'BERT-layers_count:%s-hidden_size:%s-heads_count:%s-timestamp:%s' % (
         str(layers_count), str(hidden_size), str(heads_count),\
         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 log_output = 'log/%s.log' % run_name
+fixed_length = None
+fixed_legnth = 600
 
 if __name__ == '__main__':
     finetunefinetuneSeq2Seq(pretrained_checkpoint,\
@@ -36,5 +38,5 @@ if __name__ == '__main__':
             vocabulary_size, batch_size, max_len, epochs,\
             lr, clip_grads, device, layers_count, hidden_size, heads_count,\
             d_ff, dropout_prob, log_output, checkpoint_dir, print_every,\
-            save_every, config
+            save_every, config, fixed_length=fixed_length
             )
