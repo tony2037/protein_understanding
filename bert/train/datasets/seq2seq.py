@@ -2,10 +2,11 @@
 
 class Seq2SeqDataset:
 
-    def __init__(self, data_path, dictionary):
+    def __init__(self, data_path, dictionary, fixed_length=None):
 
         self.data = []
         self.dimension = None
+        self.fixed_length = fixed_length
         with open(data_path) as file:
             assert file.readline() == 'sentence\tlabel\n'
             self.dimension = int(file.readline())
