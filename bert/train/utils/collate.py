@@ -63,6 +63,14 @@ def seq2seq_collate_function(batch):
     @@ indexed_sentence: A sery of a indexs that represent the tokens of a sentence (according to the given dictionary)
     @@ segment: [0] * len(indexed_sentence)
     @@ label: one-hot encoding, (len(indexed_sentence), dimension) i.e given dimension=2 [[0, 1], [0, 1], [1, 0] ...]
+
+    Return: (padded_sequences, padded_segments), labels, count
+    @ padded_sequences: indexed_sentences with padding, eg. [2, 3, 13, 9, ..., 0, 0, ...] (0 represents padding)
+    @ padded_segments: segment with padding, eg. [0, 0, 0, ...], actually is literally all zeros and the length is same as\
+                       padded_sequences, and labels (assume [PAD_INDEX] is 0)
+    @ labels: One-hot encoding with padding, a padding'd be like [0, 0, 0 ...] depends on the dimesion of original label\
+              , which is literally how many classes are in this task 
+    @ count: the amount of samples this batch 
     """
     lengths = [len(sequence) for (sequence, _), _ in batch]
     max_length = max(lengths)
