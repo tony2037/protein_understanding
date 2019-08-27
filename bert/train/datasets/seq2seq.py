@@ -18,6 +18,7 @@ class Seq2SeqDataset:
 
                 if self.fixed_length != None:
                     padding_length = self.fixed_length - len(indexed_sentence)
+                    assert padding_length >= 0
                     padding_sentence = [PAD_INDEX for _ in range(padding_length)]
                     padding_label = [[0 for _ in range(self.dimension)] for _ in range(padding_length)]
                     indexed_sentence = indexed_sentence + padding_sentence
