@@ -7,7 +7,7 @@ from .utils.collate import seq2seq_collate_function
 from .utils.stateload import stateLoading
 from .optimizers import NoamOptimizer
 
-from .Seq2Seq.model import Seq2Seq
+from .Seq2Seq.models import Seq2Seq
 from .Seq2Seq.utils import Seq2Seq_Metric
 
 import torch
@@ -55,15 +55,15 @@ def finetuneSeq2Seq(pretrained_checkpoint,
     logger.info('dictionary vocabulary : {vocabulary_size} tokens'.format(vocabulary_size=vocabulary_size))
 
     logger.info('Loading datasets...')
-    train_dataset = Seq2SeqDataset(data_path=train_path, dictionary=dictionary)
-    val_dataset = Seq2SeqDataset(data_path=val_path, dictionary=dictionary)
+    train_dataset = Seq2SeqDataset(data_path=train_path, dictionary=dictionary, fixed_length=fixed_length)
+    val_dataset = Seq2SeqDataset(data_path=val_path, dictionary=dictionary, fixed_length=fixed_length)
     logger.info('Train dataset size : {dataset_size}'.format(dataset_size=len(train_dataset)))
 
     logger.info('Building model...')
     pretrained_model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, forward_encoded=True)
     pretrained_model = stateLoading(pretrained_model, pretrained_checkpoint)
 
-    model = Seq2Seq(model=pretrained_model device=device)
+    model = Seq2Seq(model=pretrained_model, device=device)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(
@@ -75,12 +75,12 @@ def finetuneSeq2Seq(pretrained_checkpoint,
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=batch_size,
-        collate_fn=classification_collate_function)
+        collate_fn=seq2seq_collate_function)
 
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
-        collate_fn=classification_collate_function)
+        collate_fn=seq2seq_collate_function)
 
     optimizer = Adam(model.parameters(), lr=lr)
 

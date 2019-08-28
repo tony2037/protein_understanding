@@ -3,12 +3,12 @@ from bert.train.train_s2s import finetuneSeq2Seq
 import torch
 import datetime
 
-pretrained_checkpoint = ''
+pretrained_checkpoint = 'data/seq2seq/epoch=100-val_loss=2.71-val_metrics=0.183-0.5.pth'
 data_dir = None
-train_path = ''
-val_path = ''
+train_path = 'data/seq2seq/example.txt'
+val_path = 'data/seq2seq/example.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = ''
+checkpoint_dir = 'data/seq2seq/FineTune'
 dataset_limit = None
 epochs = 10
 batch_size = 16
@@ -30,10 +30,10 @@ run_name = 'BERT-layers_count:%s-hidden_size:%s-heads_count:%s-timestamp:%s' % (
         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 log_output = 'log/%s.log' % run_name
 fixed_length = None
-fixed_legnth = 600
+fixed_length = 600
 
 if __name__ == '__main__':
-    finetunefinetuneSeq2Seq(pretrained_checkpoint,\
+    finetuneSeq2Seq(pretrained_checkpoint,\
             data_dir, train_path, val_path, dictionary_path,\
             vocabulary_size, batch_size, max_len, epochs,\
             lr, clip_grads, device, layers_count, hidden_size, heads_count,\

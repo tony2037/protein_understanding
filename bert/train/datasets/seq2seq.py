@@ -38,6 +38,6 @@ class Seq2SeqDataset:
 
     def onehot(self, index):
 
-        tmp = [0 for _ in range(self.dimension)]
-        tmp[index] = 1
+        tmp = [0. for _ in range(self.dimension)]
+        tmp[index] = 1.
         return tmp
