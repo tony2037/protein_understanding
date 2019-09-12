@@ -1,28 +1,30 @@
 import torch
 from torch import nn
 from .models import conv1d, avg_pool, deconv1d
+from bert.train.utils.onehot import index2onehot
+from bert.train import IGNORE_INDEX
 
 import math
 
 class sigunet(nn.Module):
 
-    def __init__(self, model, m, n, kernel_size, pool_size, threshold, device, embedded_size=128, sequence_length=96):
+    def __init__(self, model, concate, m, n, kernel_size, pool_size, threshold, device, sequence_length=96):
         super(sigunet, self).__init__()
 
         self.model = model
+        self.concate = concate
         self.m = m
         self.n = n
         self.kernel_size = kernel_size
         self.pool_size = pool_size
         self.threshold = threshold
         self.device = device
-        self.loss_function = nn.CrossEntropyLoss()
-        self.embedded_size = embedded_size
+        self.loss_function = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
         self.sequence_length = sequence_length
         pass1_len = sequence_length
         pass2_len = self.pool_len(pass1_len, 2, 2)
         pass3_len = self.pool_len(pass2_len, 2, 2)
-        self.level_1 = [conv1d(embedded_size, m, kernel_size), conv1d(m, m, kernel_size), avg_pool(2)]
+        self.level_1 = [conv1d(concate.output_size, m, kernel_size), conv1d(m, m, kernel_size), avg_pool(2)]
         self.level_2 = [conv1d(m, (m + n), kernel_size), conv1d((m + n), (m + n), kernel_size), avg_pool(2)]
         self.level_3 = [conv1d((m + n), (m + 2 * n), kernel_size), conv1d((m + 2 * n), (m + 2 *  n), kernel_size), avg_pool(2)]
         self.delevel_1 = [conv1d((m + 2 * n), (m + 3 * n), kernel_size), conv1d((m + 3 * n), (m + 3 * n), kernel_size),\
@@ -37,6 +39,8 @@ class sigunet(nn.Module):
     def forward(self, inputs, targets):
 
         outputs = self.model(inputs)
+        indexed_sequences, _ = inputs
+        onehot = index2onehot(indexed_sequences)
 
         # the front two ouputs is going to be ignored
         # encoded_sources: (batch_size, seq_len, embed_size)
@@ -44,8 +48,8 @@ class sigunet(nn.Module):
         # Permute the axis to adapt to nn.Conv1d
         # encoded_sources: (batch_size, embed_size, seq_len)
         # https://discuss.pytorch.org/t/swap-axes-in-pytorch/970/2
-        sigunet_input = encoded_sources.transpose(2, 1)
-        assert([_ for _ in sigunet_input.shape[1:]] == [128, 96])
+        sigunet_input_ = self.concate((encoded_sources, onehot))
+        sigunet_input = sigunet_input_.transpose(2, 1)
 
         out = self.level_1[0](sigunet_input)
         pass1 = self.level_1[1](out)
