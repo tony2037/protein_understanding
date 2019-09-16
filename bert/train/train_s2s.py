@@ -64,7 +64,7 @@ def finetuneSeq2Seq(pretrained_checkpoint,
     pretrained_model = stateLoading(pretrained_model, pretrained_checkpoint)
 
     concate_model = concate(output_size=64, hidden_size=hidden_size, onehot_size=vocabulary_size)
-    model = sigunet(model=pretrained_model, concate=concate_model, m=28, n=4, kernel_size=7, pool_size=2, threshold=0.35, device=device)
+    model = sigunet(model=pretrained_model, concate=concate_model, m=28, n=4, kernel_size=7, pool_size=2, threshold=0.5, device=device)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(
