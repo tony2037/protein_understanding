@@ -34,7 +34,7 @@ class sigunet(nn.Module):
                           deconv1d((m + 2 * n), (m + n), pass2_len, kernel_size, 2).cuda()]
         self.delevel_3 = [conv1d((2 * m + 2 * n), (m + n), kernel_size).cuda(), conv1d((m + n), (m + n), kernel_size).cuda(),\
                           deconv1d((m + n), m, pass1_len, kernel_size, 2).cuda()]
-        self.finals = [conv1d((2 * m), m, kernel_size).cuda(), conv1d(m, 3, kernel_size, nn.Softmax()).cuda()]
+        self.finals = [conv1d((2 * m), m, kernel_size).cuda(), conv1d(m, 3, kernel_size, nn.Softmax(dim=1)).cuda()]
 
     def forward(self, inputs, targets):
 
@@ -90,12 +90,12 @@ class sigunet(nn.Module):
         #trans_out = out.transpose(2, 1)
         # errorenous
         #out, _ = torch.max(out, 2)
-        #prediction = self.pass_threshold(trans_out)
+        predictions = self.pass_threshold(_out)
 
         loss = self.loss_function(_out.reshape(-1, 3), targets.reshape(-1))
         # predictions = self.detect_SignalPeptides(_out)
 
-        return torch.FloatTensor(0), loss.unsqueeze(dim=0)
+        return predictions, loss.unsqueeze(dim=0)
 
     def detect_SignalPeptides(self, out):
         # 3 to 2
