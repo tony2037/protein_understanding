@@ -7,8 +7,6 @@ from .utils.stateload import stateLoading
 from .optimizers import NoamOptimizer
 from torch.optim import Adam
 
-from .Seq2Seq.utils import Seq2Seq_Metric
-
 from .sigunet.sigunet import sigunet
 from .concate.concate import concate
 
