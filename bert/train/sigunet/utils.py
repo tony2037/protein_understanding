@@ -142,9 +142,7 @@ def conv1x1_softmax(input):
 
 def Signalpeptides_MCC(predictions, targets):
     targets = targets_modify(targets)
-    targets = targets.detach().cpu().numpy()
-    print(targets)
-    print(predictions)
+    # targets = targets.detach().cpu().numpy()
     return matthews_corrcoef(targets, predictions)
     
 def Signalpeptides_F1(predictions, targets):
@@ -156,8 +154,14 @@ def targets_modify(targets):
     """
     Since 2 represents containing signal peptides, which is positive sample
     """
+    """
     tmp = torch.zeros(targets.shape)
     for i in range(0, targets.shape[0]):
         if targets[i] == 2:
             tmp[i] = 1
     return tmp
+    """
+    tmp = []
+    for seq in targets:
+        tmp.append(1. if 2 in seq else 0.)
+    return np.array(tmp)
