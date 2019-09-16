@@ -24,23 +24,23 @@ class sigunet(nn.Module):
         pass1_len = sequence_length
         pass2_len = self.pool_len(pass1_len, 2, 2)
         pass3_len = self.pool_len(pass2_len, 2, 2)
-        self.level_1 = [conv1d(concate.output_size, m, kernel_size), conv1d(m, m, kernel_size), avg_pool(2)]
-        self.level_2 = [conv1d(m, (m + n), kernel_size), conv1d((m + n), (m + n), kernel_size), avg_pool(2)]
-        self.level_3 = [conv1d((m + n), (m + 2 * n), kernel_size), conv1d((m + 2 * n), (m + 2 *  n), kernel_size), avg_pool(2)]
-        self.delevel_1 = [conv1d((m + 2 * n), (m + 3 * n), kernel_size), conv1d((m + 3 * n), (m + 3 * n), kernel_size),\
-                          deconv1d((m + 3 * n), (m + 2 * n), pass3_len, kernel_size, 2)]
-        self.delevel_2 = [conv1d((2 * m + 4 * n), (m + 2 * n), kernel_size), conv1d((m + 2 * n), (m + 2 * n), kernel_size),\
-                          deconv1d((m + 2 * n), (m + n), pass2_len, kernel_size, 2)]
-        self.delevel_3 = [conv1d((2 * m + 2 * n), (m + n), kernel_size), conv1d((m + n), (m + n), kernel_size),\
-                          deconv1d((m + n), m, pass1_len, kernel_size, 2)]
-        self.finals = [conv1d((2 * m), m, kernel_size), conv1d(m, 3, kernel_size, nn.Softmax())]
-        self.Linear = nn.Linear(pass1_len, 1)
+        self.level_1 = [conv1d(concate.output_size, m, kernel_size).cuda(), conv1d(m, m, kernel_size).cuda(), avg_pool(2)]
+        self.level_2 = [conv1d(m, (m + n), kernel_size).cuda(), conv1d((m + n), (m + n), kernel_size).cuda(), avg_pool(2)]
+        self.level_3 = [conv1d((m + n), (m + 2 * n), kernel_size).cuda(), conv1d((m + 2 * n), (m + 2 *  n), kernel_size).cuda(), \
+                        avg_pool(2)]
+        self.delevel_1 = [conv1d((m + 2 * n), (m + 3 * n), kernel_size).cuda(), conv1d((m + 3 * n), (m + 3 * n), kernel_size).cuda(),\
+                          deconv1d((m + 3 * n), (m + 2 * n), pass3_len, kernel_size, 2).cuda()]
+        self.delevel_2 = [conv1d((2 * m + 4 * n), (m + 2 * n), kernel_size).cuda(), conv1d((m + 2 * n), (m + 2 * n), kernel_size).cuda(),\
+                          deconv1d((m + 2 * n), (m + n), pass2_len, kernel_size, 2).cuda()]
+        self.delevel_3 = [conv1d((2 * m + 2 * n), (m + n), kernel_size).cuda(), conv1d((m + n), (m + n), kernel_size).cuda(),\
+                          deconv1d((m + n), m, pass1_len, kernel_size, 2).cuda()]
+        self.finals = [conv1d((2 * m), m, kernel_size).cuda(), conv1d(m, 3, kernel_size, nn.Softmax()).cuda()]
 
     def forward(self, inputs, targets):
 
         outputs = self.model(inputs)
         indexed_sequences, _ = inputs
-        onehot = index2onehot(indexed_sequences)
+        onehot = index2onehot(dim=self.concate.onehot_size, indexed_sequences=indexed_sequences, device=self.device)
 
         # the front two ouputs is going to be ignored
         # encoded_sources: (batch_size, seq_len, embed_size)
@@ -84,9 +84,7 @@ class sigunet(nn.Module):
         out = self.finals[0](out)
         out = self.finals[1](out)
 
-        out = self.Linear(out)
-        out = out.squeeze()
-        _out = out.view(targets.shape[0], -1)
+        _out = out.transpose(2, 1)
 
         # Make it (batch_size, length, channels)
         #trans_out = out.transpose(2, 1)
@@ -94,10 +92,10 @@ class sigunet(nn.Module):
         #out, _ = torch.max(out, 2)
         #prediction = self.pass_threshold(trans_out)
 
-        loss = self.loss_function(_out, targets)
-        predictions = self.detect_SignalPeptides(_out)
+        loss = self.loss_function(_out.reshape(-1, 3), targets.reshape(-1))
+        # predictions = self.detect_SignalPeptides(_out)
 
-        return predictions, loss.unsqueeze(dim=0)
+        return torch.FloatTensor(0), loss.unsqueeze(dim=0)
 
     def detect_SignalPeptides(self, out):
         # 3 to 2
