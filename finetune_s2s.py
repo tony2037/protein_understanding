@@ -3,12 +3,12 @@ from bert.train.train_s2s import finetuneSeq2Seq
 import torch
 import datetime
 
-pretrained_checkpoint = 'data/seq2seq/epoch=100-val_loss=2.71-val_metrics=0.183-0.5.pth'
+pretrained_checkpoint = 'data/signal-peptides/epoch=100-val_loss=2.71-val_metrics=0.183-0.5.pth'
 data_dir = None
-train_path = 'data/seq2seq/example.txt'
-val_path = 'data/seq2seq/example.txt'
+train_path = 'data/signal-peptides/SignalP_train_euk_96_res_label.txt'
+val_path = 'data/signal-peptides/SignalP_val_euk_96_res_label.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = 'data/seq2seq/FineTune'
+checkpoint_dir = 'data/signal-peptides/concate'
 dataset_limit = None
 epochs = 10
 batch_size = 16
@@ -29,8 +29,6 @@ run_name = 'BERT-layers_count:%s-hidden_size:%s-heads_count:%s-timestamp:%s' % (
         str(layers_count), str(hidden_size), str(heads_count),\
         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 log_output = 'log/%s.log' % run_name
-fixed_length = None
-fixed_length = 600
 
 if __name__ == '__main__':
     finetuneSeq2Seq(pretrained_checkpoint,\
@@ -38,5 +36,5 @@ if __name__ == '__main__':
             vocabulary_size, batch_size, max_len, epochs,\
             lr, clip_grads, device, layers_count, hidden_size, heads_count,\
             d_ff, dropout_prob, log_output, checkpoint_dir, print_every,\
-            save_every, config, fixed_length=fixed_length
+            save_every, config
             )
