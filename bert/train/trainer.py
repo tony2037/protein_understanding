@@ -1,6 +1,7 @@
 from .utils.convert import convert_to_tensor, convert_to_array
 
 import torch
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 
 from os.path import join
@@ -25,7 +26,7 @@ class Trainer:
 
     def __init__(self, loss_model, train_dataloader, val_dataloader,
                  metric_functions, device, optimizer, clip_grads,
-                 logger, checkpoint_dir, print_every, save_every):
+                 logger, checkpoint_dir, print_every, save_every, scheduler, monitor):
 
         self.device = device
 
@@ -50,6 +51,9 @@ class Trainer:
 
         self.best_val_metric = None
         self.best_checkpoint_output_path = None
+
+        self.scheduler = ReduceLROnPlateau(optimzer, 'min') if scheduler == None else scheduler
+        self.monitor = 'val_loss' if monitor == None else monitor
 
     def run_epoch(self, dataloader, mode='train'):
 
@@ -101,6 +105,11 @@ class Trainer:
             self.loss_model.eval()
 
             val_epoch_loss, val_epoch_metrics = self.run_epoch(self.val_dataloader, mode='val')
+
+            if self.monitor == 'train_loss':
+                self.scheduler.step(train_epoch_loss)
+            elif self.monitor == 'val_loss':
+                self.scheduler.step(val_epoch_loss)
 
             if epoch % self.print_every == 0 and self.logger:
                 per_second = len(self.train_dataloader.dataset) / ((epoch_end_time - epoch_start_time).seconds + 1)

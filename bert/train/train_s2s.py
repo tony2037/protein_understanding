@@ -6,6 +6,7 @@ from .utils.log import make_run_name, make_logger, make_checkpoint_dir
 from .utils.stateload import stateLoading
 from .optimizers import NoamOptimizer
 from torch.optim import Adam
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from .sigunet.sigunet import sigunet
 from .sigunet.utils import Signalpeptides_MCC
@@ -84,6 +85,7 @@ def finetuneSeq2Seq(pretrained_checkpoint,
         collate_fn=Seq2SeqDataset.collate_function)
 
     optimizer = Adam(model.parameters(), lr=lr)
+    scheduler = ReduceLROnPlateau(optimizer, 'min', verbose=True)
 
     checkpoint_dir = make_checkpoint_dir(checkpoint_dir, run_name, config)
 
@@ -99,7 +101,9 @@ def finetuneSeq2Seq(pretrained_checkpoint,
         checkpoint_dir=checkpoint_dir,
         print_every=print_every,
         save_every=save_every,
-        device=device
+        device=device,
+        scheduler=scheduler,
+        monitor='train_loss'
     )
 
     trainer.run(epochs=epochs)
