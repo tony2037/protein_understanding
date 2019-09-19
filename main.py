@@ -6,16 +6,16 @@ from bert.preprocess.preprocess import build_dictionary
 from bert.train.train import pretrain
 
 data_dir = None
-train_dir = 'data/reconstructed_pretrain/reconstructed_pretrain.txt'
-val_path = 'data/reconstructed_pretrain/reconstructed_pretrain.txt'
+train_dir = 'data/train.txt'
+val_path = 'data/val.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = 'data/reconstructed_pretrain/checkpoint_0.15_original'
+checkpoint_dir = 'checkpoint/model.pkl'
 dataset_limit = None
-epochs = 100
+epochs = 20000
 batch_size = 16
 print_every = 1
-save_every = 5
-vocabulary_size = 100
+save_every = 10
+vocabulary_size = 30000
 max_len = 1024
 lr = 0.001
 clip_grads = 'store_true'
