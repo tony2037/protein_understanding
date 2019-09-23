@@ -1,20 +1,16 @@
 from bert.preprocess.dictionary import IndexDictionary
-from .model.bert import build_model, FineTuneModel
-from .loss_models import MLMNSPLossModel, ClassificationLossModel, MLMLossModel
-from .datasets.pretraining import PairedDataset
-from .datasets.classification import SST2IndexedDataset
+from .datasets.NoOneHot import Seq2SeqDataset
 from .trainer import Trainer
 from .utils.log import make_run_name, make_logger, make_checkpoint_dir
-from .utils.collate import pretraining_collate_function, classification_collate_function
 from .utils.stateload import stateLoading
-from .optimizers import NoamOptimizer
+from torch.optim import Adam
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from .sigunet.sigunet import sigunet
-from .sigunet.utils import Signalpeptides_MCC, Signalpeptides_F1
+from .Seq2Seq.utils import Seq2Seq_Metric
 
 import torch
 from torch.nn import DataParallel
-from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 import random
@@ -58,34 +54,33 @@ def finetuneSigunet(pretrained_checkpoint,
     logger.info('dictionary vocabulary : {vocabulary_size} tokens'.format(vocabulary_size=vocabulary_size))
 
     logger.info('Loading datasets...')
-    train_dataset = SST2IndexedDataset(data_path=train_path, dictionary=dictionary)
-    val_dataset = SST2IndexedDataset(data_path=val_path, dictionary=dictionary)
+    train_dataset = Seq2SeqDataset(data_path=train_path, dictionary=dictionary)
+    val_dataset = Seq2SeqDataset(data_path=val_path, dictionary=dictionary)
     logger.info('Train dataset size : {dataset_size}'.format(dataset_size=len(train_dataset)))
 
     logger.info('Building model...')
-    pretrained_model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, forward_encoded=True)
-    pretrained_model = stateLoading(pretrained_model, pretrained_checkpoint)
 
-    model = sigunet(model=pretrained_model, m=28, n=4, kernel_size=7, pool_size=2, threshold=0.1, device=device)
+    model = sigunet(m=28, n=4, kernel_size=7, pool_size=2, threshold=0.1, device=device)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(
         parameters_count=sum([p.nelement() for p in model.parameters()])))
 
     # Have not figured this out yet
-    metric_functions = [Signalpeptides_MCC, Signalpeptides_F1]
+    metric_functions = [Seq2Seq_Metric]
 
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=batch_size,
-        collate_fn=classification_collate_function)
+        collate_fn=Seq2SeqDataset.collate_function)
 
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
-        collate_fn=classification_collate_function)
+        collate_fn=Seq2SeqDataset.collate_function)
 
     optimizer = Adam(model.parameters(), lr=lr)
+    scheduler = ReduceLROnPlateau(optimizer, 'min', verbose=True)
 
     checkpoint_dir = make_checkpoint_dir(checkpoint_dir, run_name, config)
 
@@ -101,7 +96,9 @@ def finetuneSigunet(pretrained_checkpoint,
         checkpoint_dir=checkpoint_dir,
         print_every=print_every,
         save_every=save_every,
-        device=device
+        device=device,
+        scheduler=scheduler,
+        monitor='train_loss'
     )
 
     trainer.run(epochs=epochs)
