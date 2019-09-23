@@ -74,6 +74,8 @@ class Trainer:
             if mode == 'train':
                 self.optimizer.zero_grad()
                 batch_loss.backward()
+                for param in self.loss_model.parameters():
+                    print(param.grad.data.sum())
                 if self.clip_grads:
                     torch.nn.utils.clip_grad_norm_(self.loss_model.parameters(), 1)
                 self.optimizer.step()
