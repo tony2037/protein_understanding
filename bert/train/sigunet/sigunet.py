@@ -41,8 +41,7 @@ class sigunet(nn.Module):
         self.delevel_3_1 = conv1d((m + n), (m + n), kernel_size)
         self.delevel_3_2 = deconv1d((m + n), m, pass1_len, kernel_size, 2)
         self.finals_0 = conv1d((2 * m), m, kernel_size)
-        self.BatchNorm = nn.BatchNorm1d(m)
-        self.finals_1 = conv1d(m, 3, kernel_size, nn.Softmax(dim=1))
+        self.finals_1 = conv1d(m, 3, kernel_size)
 
     def forward(self, inputs, targets):
 
@@ -87,7 +86,6 @@ class sigunet(nn.Module):
         out = torch.cat([out, pass1], dim=1)
 
         out = self.finals_0(out)
-        out = self.BatchNorm(out)
         out = self.finals_1(out)
 
         _out = out.transpose(2, 1)
@@ -98,12 +96,9 @@ class sigunet(nn.Module):
         #out, _ = torch.max(out, 2)
         predictions = self.pass_threshold(_out)
 
-        # flatten_out = _out.flatten(start_dim=0, end_dim=1)
-        # flatten_target = targets.flatten(start_dim=0, end_dim=1)
-
-        loss = 0 
-        for mini_batch in zip(_out, targets):
-            loss += self.loss_function(mini_batch[0], mini_batch[1])
+        flatten_out = _out.flatten(start_dim=0, end_dim=1)
+        flatten_target = targets.flatten(start_dim=0, end_dim=1)
+        loss = self.loss_function(flatten_out, flatten_target)
 
         return predictions, loss.unsqueeze(dim=0)
 
