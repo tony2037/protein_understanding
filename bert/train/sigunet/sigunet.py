@@ -8,9 +8,10 @@ import math
 
 class sigunet(nn.Module):
 
-    def __init__(self, m, n, kernel_size, pool_size, threshold, device, sequence_length=96):
+    def __init__(self, model, m, n, kernel_size, pool_size, threshold, device, sequence_length=96):
         super(sigunet, self).__init__()
 
+        self.model = model
         self.m = m
         self.n = n
         self.kernel_size = kernel_size
@@ -22,7 +23,7 @@ class sigunet(nn.Module):
         pass1_len = sequence_length
         pass2_len = self.pool_len(pass1_len, 2, 2)
         pass3_len = self.pool_len(pass2_len, 2, 2)
-        self.level_1_0 = conv1d(29, m, kernel_size)
+        self.level_1_0 = conv1d(128, m, kernel_size)
         self.level_1_1 = conv1d(m, m, kernel_size)
         self.level_1_2 = avg_pool(2)
         self.level_2_0 = conv1d(m, (m + n), kernel_size)
@@ -45,15 +46,10 @@ class sigunet(nn.Module):
 
     def forward(self, inputs, targets):
 
-        indexed_sequences, _ = inputs
-        onehot = index2onehot(dim=29, indexed_sequences=indexed_sequences, device=self.device)
+        outputs = self.model(inputs)
 
-        onehot.requires_grad = True
-        # the front two ouputs is going to be ignored
-        # Permute the axis to adapt to nn.Conv1d
-        # https://discuss.pytorch.org/t/swap-axes-in-pytorch/970/2
-        sigunet_input_ = onehot
-        sigunet_input = sigunet_input_.transpose(2, 1)
+        mlm_outputs, nsp_outputs, encoded_sources = outputs
+        sigunet_input = encoded_sources.transpose(2, 1)
 
         out = self.level_1_0(sigunet_input)
         pass1 = self.level_1_1(out)
@@ -62,7 +58,7 @@ class sigunet(nn.Module):
         out = self.level_2_0(out)
         pass2 = self.level_2_1(out)
         out = self.level_2_2(pass2)
-        
+
         out = self.level_3_0(out)
         pass3 = self.level_3_1(out)
         out = self.level_3_2(pass3)
