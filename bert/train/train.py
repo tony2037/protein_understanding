@@ -82,10 +82,12 @@ def pretrain(data_dir, train_path, val_path, dictionary_path,
         val_dataset,
         batch_size=batch_size,
         collate_fn=pretraining_collate_function)
-
+    """
     optimizer = NoamOptimizer(model.parameters(),
                               d_model=hidden_size, factor=2, warmup_steps=10000, betas=(0.9, 0.999), weight_decay=0.01)
-    scheduler = ReduceLROnPlateau(optimizer, 'min', verbose=True)
+    """
+    optimizer = Adam(model.parameters())
+    scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3, verbose=True)
 
     checkpoint_dir = make_checkpoint_dir(checkpoint_dir, run_name, config)
 
