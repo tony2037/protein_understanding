@@ -1,8 +1,10 @@
 from bert.preprocess.dictionary import IndexDictionary
+from .model.bert import build_model
 from .datasets.NoOneHot import Seq2SeqDataset
 from .trainer import Trainer
 from .utils.log import make_run_name, make_logger, make_checkpoint_dir
 from .utils.stateload import stateLoading
+from .utils.fix_weights import disable_grad
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
@@ -50,7 +52,6 @@ def finetuneSigunet(pretrained_checkpoint,
     dictionary = IndexDictionary.load(dictionary_path=dictionary_path,
                                       vocabulary_size=vocabulary_size)
     vocabulary_size = len(dictionary)
-    #logger.info(f'dictionary vocabulary : {vocabulary_size} tokens')
     logger.info('dictionary vocabulary : {vocabulary_size} tokens'.format(vocabulary_size=vocabulary_size))
 
     logger.info('Loading datasets...')
@@ -59,8 +60,11 @@ def finetuneSigunet(pretrained_checkpoint,
     logger.info('Train dataset size : {dataset_size}'.format(dataset_size=len(train_dataset)))
 
     logger.info('Building model...')
+    pretrained_model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, forward_encoded=True)
+    pretrained_model = stateLoading(pretrained_model, pretrained_checkpoint)
+    pretrained_model = disable_grad(pretrained_model)
 
-    model = sigunet(m=28, n=4, kernel_size=7, pool_size=2, threshold=0.1, device=device)
+    model = sigunet(model=pretrained_model, hidden_size=hidden_size, m=28, n=4, kernel_size=7, pool_size=2, threshold=0.1, device=device)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(

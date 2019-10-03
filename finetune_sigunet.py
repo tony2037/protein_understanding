@@ -3,14 +3,14 @@ from bert.train.train_sigunet import finetuneSigunet
 import torch
 import datetime
 
-pretrained_checkpoint = 'data/signal-peptides/epoch=100-val_loss=2.71-val_metrics=0.183-0.5.pth'
+pretrained_checkpoint = 'data/signal-peptides/checkpoint/SignalP_euk_pretrain/epoch=1190-val_loss=1.74-val_metrics=0.485-0.272.pth'
 data_dir = None
 train_path = 'data/signal-peptides/SignalP_train_euk_96_res_label.txt'
 val_path = 'data/signal-peptides/SignalP_val_euk_96_res_label.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = 'data/signal-peptides/checkpoint/reproduce'
+checkpoint_dir = 'data/signal-peptides/checkpoint/[0.48][fix][no_concat]'
 dataset_limit = None
-epochs = 200
+epochs = 500
 batch_size = 128
 print_every = 1
 save_every = 10
@@ -18,14 +18,14 @@ vocabulary_size = 30000
 max_len = 1024
 lr = 0.001
 clip_grads = 'store_true'
-layers_count = 1
+layers_count = 2
 hidden_size = 128
 heads_count = 2
 d_ff = 128
 dropout_prob = 0.1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 config = None
-run_name = 'Sigunet_reproduce:%s-hidden_size:%s-heads_count:%s-timestamp:%s' % (\
+run_name = '[0.48][fix][no_concat]:%s-hidden_size:%s-heads_count:%s-timestamp:%s' % (\
         str(layers_count), str(hidden_size), str(heads_count),\
         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 log_output = 'log/%s.log' % run_name

@@ -8,9 +8,11 @@ import math
 
 class sigunet(nn.Module):
 
-    def __init__(self, m, n, kernel_size, pool_size, threshold, device, sequence_length=96):
+    def __init__(self, model, hidden_size, m, n, kernel_size, pool_size, threshold, device, sequence_length=96):
         super(sigunet, self).__init__()
 
+        self.model = model
+        self.hidden_size = hidden_size
         self.m = m
         self.n = n
         self.kernel_size = kernel_size
@@ -22,7 +24,7 @@ class sigunet(nn.Module):
         pass1_len = sequence_length
         pass2_len = self.pool_len(pass1_len, 2, 2)
         pass3_len = self.pool_len(pass2_len, 2, 2)
-        self.level_1_0 = conv1d(29, m, kernel_size)
+        self.level_1_0 = conv1d(hidden_size, m, kernel_size)
         self.level_1_1 = conv1d(m, m, kernel_size)
         self.level_1_2 = avg_pool(2)
         self.level_2_0 = conv1d(m, (m + n), kernel_size)
@@ -45,14 +47,12 @@ class sigunet(nn.Module):
 
     def forward(self, inputs, targets):
 
-        indexed_sequences, _ = inputs
-        onehot = index2onehot(dim=29, indexed_sequences=indexed_sequences, device=self.device)
+        _, _, encoded_sources = self.model(inputs)
 
-        onehot.requires_grad = True
         # the front two ouputs is going to be ignored
-        # Permute the axis to adapt to nn.Conv1d
+        # Permute the axis to adapt to nn.Conv1d: (batch_size, hidden_size, length)
         # https://discuss.pytorch.org/t/swap-axes-in-pytorch/970/2
-        sigunet_input_ = onehot
+        sigunet_input_ = encoded_sources
         sigunet_input = sigunet_input_.transpose(2, 1)
 
         out = self.level_1_0(sigunet_input)
@@ -92,15 +92,12 @@ class sigunet(nn.Module):
 
         # Make it (batch_size, length, channels)
         #trans_out = out.transpose(2, 1)
-        # errorenous
-        #out, _ = torch.max(out, 2)
-        predictions = self.pass_threshold(_out)
 
         flatten_out = _out.flatten(start_dim=0, end_dim=1)
         flatten_target = targets.flatten(start_dim=0, end_dim=1)
         loss = self.loss_function(flatten_out, flatten_target)
 
-        return predictions, loss.unsqueeze(dim=0)
+        return _out, loss.unsqueeze(dim=0)
 
     def detect_SignalPeptides(self, out):
         # 3 to 2
