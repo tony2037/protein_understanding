@@ -1,6 +1,7 @@
 from .utils.convert import convert_to_tensor, convert_to_array
 
 import torch
+from torch.utils.tensorboard  import SummaryWriter
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 
@@ -74,6 +75,10 @@ class Trainer:
             if mode == 'train':
                 self.optimizer.zero_grad()
                 batch_loss.backward()
+                # for name, param in self.loss_model.named_parameters():
+                    # print(name)
+                    # if type(param.grad) == torch.Tensor:
+                        # print(param.grad.data.sum())
                 if self.clip_grads:
                     torch.nn.utils.clip_grad_norm_(self.loss_model.parameters(), 1)
                 self.optimizer.step()
@@ -92,6 +97,8 @@ class Trainer:
         return epoch_loss, epoch_metrics
 
     def run(self, epochs=10):
+
+        writer = SummaryWriter(comment='no_concated_pre_sigP_no_msk_not_fixed_lr1e-4')
 
         for epoch in range(self.epoch, epochs + 1):
             self.epoch = epoch
@@ -126,6 +133,11 @@ class Trainer:
                                                 )
 
                 self.logger.info(log_message)
+
+            writer.add_scalar('Loss/train', train_epoch_loss, epoch)
+            writer.add_scalar('Loss/valid', val_epoch_loss, epoch)
+            writer.add_scalar('mcc/train', train_epoch_metrics[0], epoch)
+            writer.add_scalar('mcc/valid', val_epoch_metrics[0], epoch)
 
             if epoch % self.save_every == 0:
                 self._save_model(epoch, train_epoch_loss, val_epoch_loss, train_epoch_metrics, val_epoch_metrics)

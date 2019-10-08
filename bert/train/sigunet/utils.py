@@ -144,10 +144,10 @@ def Signalpeptides_MCC(predictions, targets):
     targets = targets_modify(targets)
     # targets = targets.detach().cpu().numpy()
     return matthews_corrcoef(targets, predictions)
-    
+
 def Signalpeptides_F1(predictions, targets):
     targets = targets_modify(targets)
-    targets = targets.detach().cpu().numpy()
+    # targets = targets.detach().cpu().numpy()
     return f1_score(targets, predictions)
 
 def targets_modify(targets):
