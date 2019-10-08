@@ -85,7 +85,7 @@ def finetuneSigunet(pretrained_checkpoint,
         collate_fn=Seq2SeqDataset.collate_function)
 
     optimizer = Adam(model.parameters(), lr=lr)
-    scheduler = ReduceLROnPlateau(optimizer, 'min', verbose=True)
+    scheduler = ReduceLROnPlateau(optimizer, 'min', verbose=True, patience=3)
 
     checkpoint_dir = make_checkpoint_dir(checkpoint_dir, run_name, config)
 
