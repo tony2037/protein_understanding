@@ -70,6 +70,34 @@ class ClassificationDataset:
                 indexed_sentence = [dictionary.token_to_index(token) for token in tokenized_sentence.split()]
                 self.data.append((indexed_sentence, int(label)))
 
+    @staticmethod
+    def collate_function(batch):
+        """
+        This function is for collation and is an argument for torch.utils.data.DataLoader
+        @ batch: (indexed_sentence, segment), label
+        """
+        lengths = [len(sequence) for (sequence, _), _ in batch]
+        max_length = max(lengths)
+
+        padded_sequences = []
+        padded_segments = []
+        labels = []
+
+        for (sequence, segment), label in batch:
+            length = len(sequence)
+            padding = [PAD_INDEX] * (max_length - length)
+            padded_sequence = sequence + padding
+            padded_segment = segment + padding
+
+
+            padded_sequences.append(padded_sequence)
+            padded_segments.append(padded_segment)
+            labels.append(label)
+
+        count = len(labels)
+
+        return (padded_sequences, padded_segments), labels, count
+
     def __getitem__(self, item):
         indexed_text, label = self.data[item]
         segment = [0] * len(indexed_text)
