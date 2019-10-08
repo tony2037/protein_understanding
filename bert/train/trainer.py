@@ -98,7 +98,7 @@ class Trainer:
 
     def run(self, epochs=10):
 
-        writer = SummaryWriter(comment='no_concated_pre_sigP_no_msk_not_fixed_lr1e-4')
+        writer = SummaryWriter(comment=str(self.loss_model))
 
         for epoch in range(self.epoch, epochs + 1):
             self.epoch = epoch
