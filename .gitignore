@@ -6,3 +6,4 @@ requirements.txt
 log/
 test.py
 test/
+*.pyc
