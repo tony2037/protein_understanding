@@ -6,15 +6,15 @@ from bert.preprocess.preprocess import build_dictionary
 from bert.train.train import pretrain
 
 data_dir = None
-train_dir = 'data/signal-peptides/SignalP_euk_pretrain.txt'
-val_path = 'data/signal-peptides/SignalP_euk_pretrain.txt'
+train_dir = 'data/train.txt'
+val_path = 'data/val.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = 'checkpoint/signal-peptides/Roberta/'
+checkpoint_dir = 'checkpoint/uniprot+signal-peptides/Roberta/'
 dataset_limit = None
 epochs = 20000
-batch_size = 256
+batch_size = 64
 print_every = 1
-save_every = 10
+save_every = 5
 vocabulary_size = 30000
 max_len = 1024
 lr = 0.001
