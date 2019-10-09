@@ -63,7 +63,7 @@ def finetuneAMPscanner(pretrained_checkpoint,
     pretrained_model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, forward_encoded=True)
     pretrained_model = stateLoading(pretrained_model, pretrained_checkpoint)
 
-    model = AMPscanner(model=model, embedding_vector_length=embedding_vector_length, nbf=nbf, flen=flen, nlstm=nlstm, ndrop=ndrop)
+    model = AMPscanner(model=pretrained_model, embedding_vector_length=embedding_vector_length, nbf=nbf, flen=flen, nlstm=nlstm, ndrop=ndrop)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(

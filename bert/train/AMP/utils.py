@@ -16,3 +16,5 @@ def ACC(predictions, targets):
 def ROC(predictions, targets):
     """
     TODO
+    """
+    return np.array(0.)

@@ -3,12 +3,12 @@ from bert.train.train_AMPscanner import finetuneAMPscanner
 import torch
 import datetime
 
-pretrained_checkpoint = ''
+pretrained_checkpoint = 'checkpoint/uniprot/Roberta/epoch=900-val_loss=1.71-val_metrics=0.505-0.454.pth'
 data_dir = None
-train_path = ''
-val_path = ''
+train_path = 'data/AMP/train.txt'
+val_path = 'data/AMP/val.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = ''
+checkpoint_dir = 'data/AMP/checkpoint'
 dataset_limit = None
 epochs = 10
 batch_size = 32
