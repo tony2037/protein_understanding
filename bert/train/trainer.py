@@ -27,7 +27,8 @@ class Trainer:
 
     def __init__(self, loss_model, train_dataloader, val_dataloader,
                  metric_functions, device, optimizer, clip_grads,
-                 logger, checkpoint_dir, print_every, save_every, scheduler, monitor):
+                 logger, checkpoint_dir, print_every, save_every, scheduler, monitor,
+                 comment):
 
         self.device = device
 
@@ -55,6 +56,7 @@ class Trainer:
 
         self.scheduler = ReduceLROnPlateau(optimzer, 'min') if scheduler == None else scheduler
         self.monitor = 'val_loss' if monitor == None else monitor
+        self.comment = 'trainer' if comment == None else comment
 
     def run_epoch(self, dataloader, mode='train'):
 
@@ -98,7 +100,7 @@ class Trainer:
 
     def run(self, epochs=10):
 
-        writer = SummaryWriter(comment=str(self.loss_model))
+        writer = SummaryWriter(comment=self.comment)
 
         for epoch in range(self.epoch, epochs + 1):
             self.epoch = epoch

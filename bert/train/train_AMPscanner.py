@@ -8,7 +8,7 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from .AMP.model import AMPscanner
-from .AMP.utils import MCC
+from .AMP.utils import evaluator
 
 import torch
 from torch.nn import DataParallel
@@ -70,16 +70,19 @@ def finetuneAMPscanner(pretrained_checkpoint,
         parameters_count=sum([p.nelement() for p in model.parameters()])))
 
     # Have not figured this out yet
-    metric_functions = [MCC]
+    eva = evaluator()
+    metric_functions = [eva.MCC]
 
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=batch_size,
+        shuffle=True,
         collate_fn=ClassificationDataset.collate_function)
 
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
+        shuffle=True,
         collate_fn=ClassificationDataset.collate_function)
 
     optimizer = Adam(model.parameters(), lr=lr)
@@ -101,7 +104,8 @@ def finetuneAMPscanner(pretrained_checkpoint,
         save_every=save_every,
         device=device,
         scheduler=scheduler,
-        monitor='train_loss'
+        monitor='val_loss',
+        comment = 'AMPscanner_Reproduce'
     )
 
     trainer.run(epochs=epochs)

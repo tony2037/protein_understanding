@@ -8,7 +8,7 @@ class AMPscanner(nn.Module):
         super(AMPscanner, self).__init__()
         self.model = model
         self.kernel_size = flen
-        self.embedding = nn.Embedding(21, embedding_vector_length)
+        self.embedding = nn.Embedding(29, embedding_vector_length)
         self.conv = nn.Conv1d(embedding_vector_length, nbf, kernel_size=flen, stride=1, padding=(self.kernel_size // 2))
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool1d(5)
@@ -16,8 +16,10 @@ class AMPscanner(nn.Module):
         self.linear = nn.Linear(nlstm, 1)
         self.sigmoid = nn.Sigmoid()
 
-    def forward(self, input):
-        out = self.embedding(input)
+    def forward(self, inputs, targets):
+        
+        padded_sequences, padded_segments = inputs
+        out = self.embedding(padded_sequences)
         out = out.transpose(2, 1)
         out = self.conv(out)
         out = self.relu(out)
@@ -27,6 +29,8 @@ class AMPscanner(nn.Module):
         out = out[:, -1, :]
         out = self.linear(out)
         out = self.sigmoid(out)
-        loss = F.binary_cross_entropy(out, y)
-        prediction = (out >= 0.5).float()
+        out = torch.squeeze(out)
+        targets = targets.to(torch.float32)
+        loss = F.binary_cross_entropy(out, targets)
+        prediction = (out >= 0.5).to(torch.int64)
         return prediction, loss.unsqueeze(dim=0)
