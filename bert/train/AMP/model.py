@@ -18,8 +18,9 @@ class AMPscanner(nn.Module):
 
     def forward(self, inputs, targets):
         
-        padded_sequences, padded_segments = inputs
-        out = self.embedding(padded_sequences)
+        # padded_sequences, padded_segments = inputs
+        # out = self.embedding(padded_sequences)
+        _, _, out = self.model(inputs)
         out = out.transpose(2, 1)
         out = self.conv(out)
         out = self.relu(out)

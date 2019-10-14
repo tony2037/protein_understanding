@@ -4,6 +4,7 @@ from .datasets.NoOneHot import ClassificationDataset
 from .trainer import Trainer
 from .utils.log import make_run_name, make_logger, make_checkpoint_dir
 from .utils.stateload import stateLoading
+from .utils.fix_weights import disable_grad
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
@@ -62,6 +63,7 @@ def finetuneAMPscanner(pretrained_checkpoint,
     logger.info('Building model...')
     pretrained_model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, forward_encoded=True)
     pretrained_model = stateLoading(pretrained_model, pretrained_checkpoint)
+    pretrained_model = disable_grad(pretrained_model)
 
     model = AMPscanner(model=pretrained_model, embedding_vector_length=embedding_vector_length, nbf=nbf, flen=flen, nlstm=nlstm, ndrop=ndrop)
 
