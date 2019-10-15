@@ -105,7 +105,8 @@ def pretrain(data_dir, train_path, val_path, dictionary_path,
         save_every=save_every,
         device=device,
         scheduler=scheduler,
-        monitor='train_loss'
+        monitor='train_loss',
+        comment=run_name
     )
 
     trainer.run(epochs=epochs)
