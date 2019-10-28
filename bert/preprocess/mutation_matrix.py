@@ -1,4 +1,5 @@
 import torch
+from torch.nn import functional as F
 
 from . import PAD_TOKEN, UNK_TOKEN, MASK_TOKEN, CLS_TOKEN, SEP_TOKEN
 import json
@@ -17,8 +18,7 @@ class MutationMatrix:
                 array = self.build_array(data[token])
                 self.matrix[index] = array
 
-        self.matrix = torch.tensor(self.matrix)
-        print(self.matrix)
+        self.matrix = torch.tensor(self.matrix, dtype=torch.float32)
 
     def build_array(self, array):
 
@@ -33,3 +33,14 @@ class MutationMatrix:
 
     def get_matrix(self):
         return self.matrix
+
+    def get_softmax(self):
+        tmp = self.matrix.detach().clone()
+        prob_matrix = []
+        for v in tmp:
+            p = 10 ** (v / 10)
+            p = torch.unsqueeze(p, dim=0)
+            prob_matrix.append(p)
+        prob_matrix = torch.cat(prob_matrix, dim=0)
+        prob_matrix = F.softmax(prob_matrix, dim=1)
+        return prob_matrix
