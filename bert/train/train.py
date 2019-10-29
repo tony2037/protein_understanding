@@ -76,11 +76,13 @@ def pretrain(data_dir, train_path, val_path, dictionary_path,
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=batch_size,
+        shuffle=True,
         collate_fn=pretraining_collate_function)
 
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
+        shuffle=True,
         collate_fn=pretraining_collate_function)
     """
     optimizer = NoamOptimizer(model.parameters(),
@@ -105,7 +107,7 @@ def pretrain(data_dir, train_path, val_path, dictionary_path,
         save_every=save_every,
         device=device,
         scheduler=scheduler,
-        monitor='train_loss',
+        monitor='val_loss',
         comment=run_name
     )
 
@@ -160,11 +162,13 @@ def finetune(pretrained_checkpoint,
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=batch_size,
+        shuffle=True,
         collate_fn=classification_collate_function)
 
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
+        shuffle=True,
         collate_fn=classification_collate_function)
 
     optimizer = Adam(model.parameters(), lr=lr)
