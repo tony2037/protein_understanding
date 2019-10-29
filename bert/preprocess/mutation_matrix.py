@@ -38,9 +38,11 @@ class MutationMatrix:
         tmp = self.matrix.detach().clone()
         prob_matrix = []
         for v in tmp:
-            p = 10 ** (v / 10)
+            p = 10 ** (-v / 10)
             p = torch.unsqueeze(p, dim=0)
+            p = F.softmax(p, dim=1)
+            factor = 1 / torch.min(p)
+            p = p * factor
             prob_matrix.append(p)
         prob_matrix = torch.cat(prob_matrix, dim=0)
-        prob_matrix = F.softmax(prob_matrix, dim=1)
         return prob_matrix
