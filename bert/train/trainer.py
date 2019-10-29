@@ -64,7 +64,7 @@ class Trainer:
         epoch_count = 1
         epoch_metrics = [0 for _ in range(len(self.metric_functions))]
 
-        for inputs, targets, batch_count in tqdm(dataloader):
+        for inputs, targets, batch_count in tqdm(dataloader, ncols=60):
             inputs = convert_to_tensor(inputs, self.device)
             targets = convert_to_tensor(targets, self.device)
 
