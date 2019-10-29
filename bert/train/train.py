@@ -137,7 +137,7 @@ def MutationPretrain(data_dir, train_path, val_path, dictionary_path,
     dictionary = IndexDictionary.load(dictionary_path=dictionary_path,
                                       vocabulary_size=vocabulary_size)
     vocabulary_size = len(dictionary)
-    mutataion_matrix = MutationMatrix(dictionary, mutataionmatrix_path)
+    mutation_matrix = MutationMatrix(dictionary, mutationmatrix_path)
     #logger.info(f'dictionary vocabulary : {vocabulary_size} tokens')
     logger.info('dictionary vocabulary : {vocabulary_size} tokens'.format(vocabulary_size=vocabulary_size))
 
@@ -153,7 +153,7 @@ def MutationPretrain(data_dir, train_path, val_path, dictionary_path,
     logger.info('{parameters_count} parameters'.format(
         parameters_count=sum([p.nelement() for p in model.parameters()])))
 
-    loss_model = MutationMLMLossModel(model, mutation_matrix)
+    loss_model = MutationMLMLossModel(model, mutation_matrix.get_softmax(), device)
     if torch.cuda.device_count() > 1:
         loss_model = DataParallel(loss_model, output_device=1)
 

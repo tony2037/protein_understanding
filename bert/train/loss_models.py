@@ -1,6 +1,8 @@
 from bert.preprocess import PAD_INDEX
 
+import torch
 from torch import nn
+from torch.nn import functional as F
 
 
 class MLMNSPLossModel(nn.Module):
@@ -81,58 +83,41 @@ class ClassificationLossModel(nn.Module):
 
         return predictions, loss.unsqueeze(dim=0)
 
-"""
-class CrossEntropyLossMutation(nn.Module):
-    '''
-        This criterion (`CrossEntropyLoss`) combines `LogSoftMax` and `NLLLoss` in one single class.
- 
-        NOTE: Computes per-element losses for a mini-batch (instead of the average loss over the entire mini-batch).
-    '''
-    def __init__(self, mutation_matrix):
+class MutationCrossEntropyLoss(nn.Module):
 
-        super().__init__()
-        self.log_softmax = nn.LogSoftmax()
-        self.mutation_matrix = autograd.Variable(mutation_matrix)
-
-        def forward(self, logits, target):
-
-            log_probabilities = self.log_softmax(logits)
-            # NLLLoss(x, class) = -weights[class] * x[class]
-            return -self.class_weights.index_select(0, target) * log_probabilities.index_select(-1, target).diag()
-"""
-
-class MutaionCrossEntropyLoss(nn.Module):
-
-    def __init__(self, mutation_matrix, ignore_index):
+    def __init__(self, mutation_matrix, ignore_index, device):
 
         super(MutationCrossEntropyLoss, self).__init__()
         self.mutation_matrix = mutation_matrix
         self.ignore_index = ignore_index
+        self.device = device if device is not None else 'cpu'
 
     def forward(self, input, target):
 
-        loss = torch.tensor(0., requires_grad=True, dtype=torch.float32)
+        loss = torch.tensor(0., requires_grad=True, dtype=torch.float32, device=self.device)
         n = input.size(0)
         c = input.size(1)
 
         for i in range(n):
             _input = input[i].unsqueeze(0)
             _target = target[i].unsqueeze(0)
-            matrix_index = int(_target.itemt())
+            matrix_index = int(_target.item())
             if matrix_index == self.ignore_index:
                 continue
             weight = self.mutation_matrix[matrix_index]
             loss = loss.add(F.cross_entropy(_input, _target, weight=weight, ignore_index=self.ignore_index))
-        loss = loss.divide(n)
+        loss = loss.div(n)
         return loss
 
 class MutationMLMLossModel(nn.Module):
 
-    def __init__(self, model, mutation_matrix):
-        super(MLMLossModel, self).__init__()
+    def __init__(self, model, mutation_matrix, device):
+        super(MutationMLMLossModel, self).__init__()
 
+        self.device = device if device is not None else 'cpu'
         self.model = model
-        self.mlm_loss_function = MutaionCrossEntropyLoss(mutation_matrix=mutation_matrix, ignore_index=PAD_INDEX)
+        self.mutation_matrix = mutation_matrix.to(device=self.device)
+        self.mlm_loss_function = MutationCrossEntropyLoss(mutation_matrix=self.mutation_matrix, ignore_index=PAD_INDEX, device=self.device)
         self.nsp_loss_function = nn.CrossEntropyLoss()
 
     def forward(self, inputs, targets):

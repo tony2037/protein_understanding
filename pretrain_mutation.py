@@ -6,13 +6,13 @@ from bert.preprocess.preprocess import build_dictionary
 from bert.train.train import MutationPretrain
 
 data_dir = None
-train_dir = 'data/train.txt'
-val_path = 'data/val.txt'
+train_dir = 'data/AMP/pretrain.txt'
+val_path = 'data/AMP/pretrain.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = 'checkpoint/uniprot+signal-peptides/Roberta/'
-mutataionmatrix_path = 'PAM250/matrix.json'
+checkpoint_dir = 'checkpoint/AMP/Mutation/PAM250/'
+mutationmatrix_path = 'PAM250/matrix.json'
 dataset_limit = None
-epochs = 20000
+epochs = 100
 batch_size = 64
 print_every = 1
 save_every = 5
@@ -27,7 +27,7 @@ d_ff = 128
 dropout_prob = 0.1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 config = None
-run_name = 'Roberta-layers_count:%s-hidden_size:%s-heads_count:%s-timestamp:%s' % (\
+run_name = 'Mutation-layers_count:%s-hidden_size:%s-heads_count:%s-timestamp:%s' % (\
         str(layers_count), str(hidden_size), str(heads_count),\
         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 log_output = 'log/%s.log' % run_name
