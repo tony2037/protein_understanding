@@ -94,18 +94,29 @@ class MutationCrossEntropyLoss(nn.Module):
 
     def forward(self, input, target):
 
+        loss = self.customized_cross_entropy(input, target)
+        return loss
+
+    def customized_cross_entropy(self, input, target):
+        """
+        input: (N, C)
+        target: (N)
+        """
         loss = torch.tensor(0., requires_grad=True, dtype=torch.float32, device=self.device)
         n = input.size(0)
         c = input.size(1)
+        assert c == self.mutation_matrix.size(0)
 
         for i in range(n):
-            _input = input[i].unsqueeze(0)
-            _target = target[i].unsqueeze(0)
+            _input = F.softmax(input[i], dim=0)
+            _target = target[i]
             matrix_index = int(_target.item())
             if matrix_index == self.ignore_index:
                 continue
             weight = self.mutation_matrix[matrix_index]
-            loss = loss.add(F.cross_entropy(_input, _target, weight=weight, ignore_index=self.ignore_index))
+            for j in range(c):
+                loss = loss.add(-weight[j] * torch.log(_input[j]))
+
         loss = loss.div(n)
         return loss
 
