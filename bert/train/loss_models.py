@@ -1,4 +1,5 @@
 from bert.preprocess import PAD_INDEX
+from bert.train import IGNORE_INDEX
 
 from torch import nn
 
@@ -78,5 +79,25 @@ class ClassificationLossModel(nn.Module):
         outputs = self.model(inputs)
         predictions = outputs.argmax(dim=1)
         loss = self.loss_function(outputs, targets)
+
+        return predictions, loss.unsqueeze(dim=0)
+
+class PretrainSeq2SeqLossModel(nn.Module):
+
+    def __init__(self, model, hidden_size, num_class):
+        super(PretrainSeq2SeqLossModel, self).__init__()
+        
+        self.model = model
+        self.classification_layer = nn.Linear(hidden_size, num_class)
+        self.classification_loss_function = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
+
+    def forward(self, inputs, targets):
+        
+        _, _, encoded_sources = self.model(inputs)
+        out = self.classification_layer(encoded_sources)
+        predictions = out.argmax(dim=2)
+        flatten_out = out.flatten(start_dim=0, end_dim=1)
+        flatten_target = targets.flatten(start_dim=0, end_dim=1)
+        loss = self.classification_loss_function(flatten_out, flatten_targets)
 
         return predictions, loss.unsqueeze(dim=0)
