@@ -1,10 +1,10 @@
 from bert.preprocess.dictionary import IndexDictionary
 from .model.bert import build_model, FineTuneModel
-from .loss_models import MLMNSPLossModel, ClassificationLossModel, MLMLossModel
+from .loss_models import MLMNSPLossModel, ClassificationLossModel, MLMLossModel, PretrainSeq2SeqLossModel
 from .metrics import mlm_accuracy, nsp_accuracy, classification_accuracy, pretrain_seq2seq_accuracy
 from .datasets.pretraining import PairedDataset
 from .datasets.classification import SST2IndexedDataset
-from .dataset.NoOneHot import ClassificationDataset, Seq2SeqDataset
+from .datasets.NoOneHot import ClassificationDataset, Seq2SeqDataset
 from .trainer import Trainer
 from .utils.log import make_run_name, make_logger, make_checkpoint_dir
 from .utils.collate import pretraining_collate_function, classification_collate_function
@@ -194,7 +194,7 @@ def finetune(pretrained_checkpoint,
     trainer.run(epochs=epochs)
     return trainer
 
-def pretrain_Seq2Seq(data_dir, train_path, val_path, dictionary_path,
+def pretrain_seq2seq(data_dir, train_path, val_path, dictionary_path,
              dataset_limit, vocabulary_size, batch_size, max_len, epochs, clip_grads, device,
              layers_count, hidden_size, heads_count, d_ff, dropout_prob,
              log_output, checkpoint_dir, print_every, save_every, num_class, config, run_name=None, **_):
@@ -225,7 +225,7 @@ def pretrain_Seq2Seq(data_dir, train_path, val_path, dictionary_path,
     logger.info('Train dataset size : {dataset_size}'.format(dataset_size=len(train_dataset)))
 
     logger.info('Building model...')
-    model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size)
+    model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, True)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(
@@ -241,13 +241,13 @@ def pretrain_Seq2Seq(data_dir, train_path, val_path, dictionary_path,
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=pretraining_collate_function)
+        collate_fn=train_dataset.collate_function)
 
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=pretraining_collate_function)
+        collate_fn=val_dataset.collate_function)
 
     optimizer = Adam(model.parameters())
     scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3, verbose=True)
