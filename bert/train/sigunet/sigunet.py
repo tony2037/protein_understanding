@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torch.nn import functional as F
 from .models import conv1d, avg_pool, deconv1d
 from bert.train.utils.onehot import index2onehot
 from bert.train import IGNORE_INDEX
@@ -54,30 +55,36 @@ class sigunet(nn.Module):
         out = self.level_1_0(sigunet_input)
         pass1 = self.level_1_1(out)
         out = self.level_1_2(pass1)
+        out = F.layer_norm(out, out.size()[1:])
 
         out = self.level_2_0(out)
         pass2 = self.level_2_1(out)
         out = self.level_2_2(pass2)
+        out = F.layer_norm(out, out.size()[1:])
 
         out = self.level_3_0(out)
         pass3 = self.level_3_1(out)
         out = self.level_3_2(pass3)
+        out = F.layer_norm(out, out.size()[1:])
 
         out = self.delevel_1_0(out)
         out = self.delevel_1_1(out)
         out = self.delevel_1_2(out)
+        out = F.layer_norm(out, out.size()[1:])
 
         out = torch.cat([out, pass3], dim=1)
 
         out = self.delevel_2_0(out)
         out = self.delevel_2_1(out)
         out = self.delevel_2_2(out)
+        out = F.layer_norm(out, out.size()[1:])
 
         out = torch.cat([out, pass2], dim=1)
 
         out = self.delevel_3_0(out)
         out = self.delevel_3_1(out)
         out = self.delevel_3_2(out)
+        out = F.layer_norm(out, out.size()[1:])
 
         out = torch.cat([out, pass1], dim=1)
 
@@ -90,7 +97,7 @@ class sigunet(nn.Module):
         #trans_out = out.transpose(2, 1)
         # errorenous
         #out, _ = torch.max(out, 2)
-        predictions = self.pass_threshold(_out)
+        predictions = _out
 
         flatten_out = _out.flatten(start_dim=0, end_dim=1)
         flatten_target = targets.flatten(start_dim=0, end_dim=1)
