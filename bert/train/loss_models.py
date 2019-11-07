@@ -1,7 +1,9 @@
 from bert.preprocess import PAD_INDEX
 from bert.train import IGNORE_INDEX
 
+import torch
 from torch import nn
+from torch.nn import functional as F
 
 
 class MLMNSPLossModel(nn.Module):
@@ -88,16 +90,25 @@ class PretrainSeq2SeqLossModel(nn.Module):
         super(PretrainSeq2SeqLossModel, self).__init__()
         
         self.model = model
+        self.hidden_size = hidden_size
+        self.num_class = num_class
         self.classification_layer = nn.Linear(hidden_size, num_class)
         self.classification_loss_function = nn.CrossEntropyLoss(ignore_index=IGNORE_INDEX)
 
     def forward(self, inputs, targets):
         
         _, _, encoded_sources = self.model(inputs)
-        out = self.classification_layer(encoded_sources)
+        (batch, length, channel) = encoded_sources.size()
+        out = torch.zeros((batch, length, self.num_class), device=encoded_sources.device)
+        for b in range(batch):
+            for l in range(length):
+                tmp = encoded_sources[b][l].unsqueeze(0)
+                tmp = self.classification_layer(tmp)
+                tmp = tmp.squeeze()
+                out[b][l] = tmp
         predictions = out.argmax(dim=2)
         flatten_out = out.flatten(start_dim=0, end_dim=1)
-        flatten_target = targets.flatten(start_dim=0, end_dim=1)
+        flatten_targets = targets.flatten(start_dim=0, end_dim=1)
         loss = self.classification_loss_function(flatten_out, flatten_targets)
 
         return predictions, loss.unsqueeze(dim=0)
