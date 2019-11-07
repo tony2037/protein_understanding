@@ -24,7 +24,7 @@ def nsp_accuracy(predictions, targets):
         return corrects.mean()
 
 def pretrain_seq2seq_accuracy(predictions, targets):
-    predictions = predictsion.flatten()
+    predictions = predictions.flatten()
     targets = targets.flatten()
 
     corrects = np.equal(predictions, targets)
