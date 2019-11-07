@@ -4,7 +4,7 @@ from .datasets.NoOneHot import Seq2SeqDataset
 from .trainer import Trainer
 from .utils.log import make_run_name, make_logger, make_checkpoint_dir
 from .utils.fix_weights import disable_grad
-from .utils.stateload import stateLoading
+from .utils.stateload import stateLoading, remove_state
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
@@ -62,8 +62,12 @@ def finetuneSigunet(pretrained_checkpoint,
 
     logger.info('Building model...')
     pretrained_model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, forward_encoded=True)
-    pretrained_model = stateLoading(pretrained_model, pretrained_checkpoint)
-    # pretrained_model = disable_grad(pretrained_model)
+    to_removes = ['classification_layer.weight', 'classification_layer.bias']
+    state_dict = torch.load(pretrained_checkpoint, map_location='cpu')['state_dict']
+    state_dict = remove_state(state_dict, to_removes)
+    pretrained_model.load_state_dict(state_dict)
+    pretrained_model = disable_grad(pretrained_model)
+    #pretrained_model.eval()
 
     model = sigunet(model=pretrained_model, m=28, n=4, kernel_size=7, pool_size=2, threshold=0.1, device=device)
 
@@ -103,7 +107,8 @@ def finetuneSigunet(pretrained_checkpoint,
         save_every=save_every,
         device=device,
         scheduler=scheduler,
-        monitor='train_loss'
+        monitor='train_loss',
+        comment='sigunet_new-pretrain'
     )
 
     trainer.run(epochs=epochs)
