@@ -306,7 +306,9 @@ def pretrain_classification(data_dir, train_path, val_path, dictionary_path,
     logger.info('Train dataset size : {dataset_size}'.format(dataset_size=len(train_dataset)))
 
     logger.info('Building model...')
-    model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, True)
+    pretrained_model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size)
+
+    model = FineTuneModel(pretrained_model, hidden_size, num_classes=num_class)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(
@@ -323,13 +325,13 @@ def pretrain_classification(data_dir, train_path, val_path, dictionary_path,
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=train_dataset.collate_function)
+        collate_fn=classification_collate_function)
 
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=val_dataset.collate_function)
+        collate_fn=classification_collate_function)
 
     optimizer = Adam(model.parameters())
     scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3, verbose=True)
