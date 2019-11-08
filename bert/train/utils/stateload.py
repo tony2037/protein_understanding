@@ -24,3 +24,10 @@ def remove_state(state_dict, to_removes):
             name = k.replace('model.', '')
             new_state_dict[name] = v
     return new_state_dict
+
+def remove_prefix(state_dict, prefix):
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        name = k.replace('%s' % prefix, '')
+        new_state_dict[name] = v
+    return new_state_dict
