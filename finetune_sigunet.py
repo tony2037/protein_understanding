@@ -3,14 +3,14 @@ from bert.train.train_sigunet import finetuneSigunet
 import torch
 import datetime
 
-pretrained_checkpoint = 'checkpoint/signal-peptides/new-pretrain/epoch=200-val_loss=0.0184-val_metrics=0.993.pth'
+pretrained_checkpoint = 'checkpoint/signal-peptides/NLP+MLM/epoch=3800-val_loss=2.6-val_metrics=0.225-0.991.pth'
 data_dir = None
 train_path = 'data/signal-peptides/SignalP_train_euk_96_res_label.txt'
 val_path = 'data/signal-peptides/SignalP_val_euk_96_res_label.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = 'data/signal-peptides/checkpoint/new-pretrain/'
+checkpoint_dir = 'data/signal-peptides/checkpoint/NSP+MLM/'
 dataset_limit = None
-epochs = 20
+epochs = 60
 batch_size = 128
 print_every = 1
 save_every = 20
@@ -25,7 +25,7 @@ d_ff = 128
 dropout_prob = 0.1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 config = None
-run_name = 'new-pretrain:%s-hidden_size:%s-heads_count:%s-timestamp:%s' % (\
+run_name = 'NSP+MLM:%s-hidden_size:%s-heads_count:%s-timestamp:%s' % (\
         str(layers_count), str(hidden_size), str(heads_count),\
         datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 log_output = 'log/%s.log' % run_name
