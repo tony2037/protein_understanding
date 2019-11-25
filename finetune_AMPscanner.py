@@ -1,14 +1,14 @@
-from bert.train.train_AMPscanner import finetuneAMPscanner
+from bert.train.train_AMPscanner import finetuneAMPscanner_SEnet
 
 import torch
 import datetime
 
-pretrained_checkpoint = 'checkpoint/AMP/Mutation/PAM250/epoch=095-val_loss=0.121-val_metrics=0.217-0.49.pth'
+pretrained_checkpoint = 'checkpoint/AMP/augment/epoch=140-val_loss=1.63-val_metrics=0.517-0.745.pth'
 data_dir = None
 train_path = 'data/AMP/train.txt'
 val_path = 'data/AMP/val.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = 'data/AMP/Mutation/PAM250/checkpoint'
+checkpoint_dir = 'data/AMP/augment'
 dataset_limit = None
 epochs = 50
 batch_size = 32
@@ -37,7 +37,7 @@ nlstm = 100
 ndrop = 0.1
 
 if __name__ == '__main__':
-    finetuneAMPscanner(pretrained_checkpoint,\
+    finetuneAMPscanner_SEnet(pretrained_checkpoint,\
             data_dir, train_path, val_path, dictionary_path,\
             vocabulary_size, batch_size, max_len, epochs,\
             lr, clip_grads, device, layers_count, hidden_size, heads_count,\
