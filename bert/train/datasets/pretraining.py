@@ -37,7 +37,7 @@ class MaskedDocument:
     def __init__(self, sentences, vocabulary_size):
         self.sentences = sentences
         self.vocabulary_size = vocabulary_size
-        self.THRESHOLD = 0.15
+        self.THRESHOLD = 0.01
 
     def __getitem__(self, item):
         """Get a masked sentence and the corresponding target.
@@ -116,12 +116,20 @@ class PairedDataset:
             B_masked_sentence, B_target_sentence = random_document[random_sentence_index]
             is_next = 0
 
+        sequence = [CLS_INDEX] + A_masked_sentence
+
+        # segment : something like [0,0,0,0,0,1,1,1,1,1,1,1])
+        segment = [0] + [0] * len(A_masked_sentence)
+
+        target = [PAD_INDEX] + A_target_sentence
+        """
         sequence = [CLS_INDEX] + A_masked_sentence + [SEP_INDEX] + B_masked_sentence + [SEP_INDEX]
 
         # segment : something like [0,0,0,0,0,1,1,1,1,1,1,1])
         segment = [0] + [0] * len(A_masked_sentence) + [0] + [1] * len(B_masked_sentence) + [1]
 
         target = [PAD_INDEX] + A_target_sentence + [PAD_INDEX] + B_target_sentence + [PAD_INDEX]
+        """
 
         return (sequence, segment), (target, is_next)
 

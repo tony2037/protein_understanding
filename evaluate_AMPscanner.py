@@ -45,8 +45,10 @@ ndrop = 0.1     # LSTM layer dropout
 
 parser = argparse.ArgumentParser(description='AMPscanner')
 parser.add_argument('checkpoint', help='checkpoint directory')
+parser.add_argument('log_path', help='The file path of log file', default='AMPscanner.log')
 args = parser.parse_args()
 checkpoint = args.checkpoint
+log_path = args.log_path
 finetune_models = glob(os.path.join(checkpoint, '*.pth'))
 finetune_models = [p for p in finetune_models if p.find('epoch=000') < 0]
 
@@ -122,6 +124,6 @@ print("\nACC\tMCC\tROC\tsens\tspec\tprec")
 print("{}\t{}\t{}\t{}\t{}\t{}".format(np.round(BESTS[0],4),np.round(BESTS[1],4),np.round(BESTS[2],4)\
                                         ,np.round(BESTS[3],4),np.round(BESTS[4],4),np.round(BESTS[5],4)))
 
-with open('AMPscanner.log', 'a+') as f:
+with open(log_path, 'a+') as f:
     f.write('{}\n'.format(BESTS_MODEL))
     f.write('{}\t{}\n'.format(np.round(BESTS[0], 4), np.round(BESTS[1], 4)))

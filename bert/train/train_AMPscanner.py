@@ -8,7 +8,7 @@ from .utils.fix_weights import disable_grad
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from .AMP.model import AMPscanner, AMPscanner_SEnet
+from .AMP.model import AMPscanner, AMPscanner_SEnet, AMPscanner_SEnet_poyu
 from .AMP.utils import evaluator
 
 import torch
@@ -152,7 +152,7 @@ def finetuneAMPscanner_SEnet(pretrained_checkpoint,
     pretrained_model = disable_grad(pretrained_model)
     pretrained_model.eval()
 
-    model = AMPscanner_SEnet(model=pretrained_model, embedding_vector_length=embedding_vector_length, nbf=nbf, flen=flen, nlstm=nlstm, ndrop=ndrop)
+    model = AMPscanner_SEnet_poyu(model=pretrained_model, embedding_vector_length=embedding_vector_length, nbf=nbf, flen=flen, nlstm=nlstm, ndrop=ndrop)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(

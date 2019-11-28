@@ -6,12 +6,12 @@ from bert.preprocess.preprocess import build_dictionary
 from bert.train.train import pretrain
 
 data_dir = None
-train_dir = 'data/train.txt'
-val_path = 'data/val.txt'
+train_dir = 'data/AMP/2xpretrain.txt'
+val_path = 'data/AMP/2xpretrain.txt'
 dictionary_path = 'dic/dic.txt'
-checkpoint_dir = 'checkpoint/uniprot+signal-peptides/Roberta/'
+checkpoint_dir = 'checkpoint/AMP/augment/[0.01][all_same]/'
 dataset_limit = None
-epochs = 20000
+epochs = 2000
 batch_size = 64
 print_every = 1
 save_every = 5

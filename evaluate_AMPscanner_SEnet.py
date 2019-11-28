@@ -15,7 +15,7 @@ from bert.train.utils.fix_weights import disable_grad
 from bert.train.utils.convert import convert_to_tensor, convert_to_array
 from bert.train.datasets.NoOneHot import ClassificationDataset
 
-from bert.train.AMP.model import AMPscanner_SEnet
+from bert.train.AMP.model import AMPscanner_SEnet, AMPscanner_SEnet_poyu
 
 import argparse
 from glob import glob
@@ -27,7 +27,7 @@ data_dir = None
 test_path = 'data/AMP/test.txt'
 dictionary_path = 'dic/dic.txt'
 dataset_limit = None
-batch_size = 1
+batch_size = 16
 vocabulary_size = 30000
 max_len = 1024
 layers_count = 2
@@ -45,8 +45,10 @@ ndrop = 0.1     # LSTM layer dropout
 
 parser = argparse.ArgumentParser(description='AMPscanner')
 parser.add_argument('checkpoint', help='checkpoint directory')
+parser.add_argument('log_path', help='The file path of log file', default='AMPscanner.log')
 args = parser.parse_args()
 checkpoint = args.checkpoint
+log_path = args.log_path
 finetune_models = glob(os.path.join(checkpoint, '*.pth'))
 finetune_models = [p for p in finetune_models if p.find('epoch=000') < 0]
 
@@ -70,7 +72,7 @@ for finetune_model in finetune_models:
     print('Model: {}'.format(finetune_model))
     print('=' * 35)
     pretrained_model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size, forward_encoded=True)
-    model = AMPscanner_SEnet(model=pretrained_model, embedding_vector_length=embedding_vector_length, nbf=nbf, flen=flen, nlstm=nlstm, ndrop=ndrop)
+    model = AMPscanner_SEnet_poyu(model=pretrained_model, embedding_vector_length=embedding_vector_length, nbf=nbf, flen=flen, nlstm=nlstm, ndrop=ndrop)
     state_dict = torch.load(finetune_model,  map_location=torch.device('cpu'))['state_dict']
     model.load_state_dict(state_dict)
     model.eval()
@@ -85,9 +87,9 @@ for finetune_model in finetune_models:
         predictions = convert_to_array(predictions)
         targets = convert_to_array(targets)
         predictions = predictions.squeeze()
-        predictions = np.expand_dims(predictions, axis=0)
+        # predictions = np.expand_dims(predictions, axis=0)
         targets = targets.squeeze()
-        targets = np.expand_dims(targets, axis=0)
+        # targets = np.expand_dims(targets, axis=0)
         pred_class.append(predictions)
         true_class.append(targets)
 
@@ -97,7 +99,7 @@ for finetune_model in finetune_models:
     print(true_class)
     assert pred_class.shape[0] == true_class.shape[0]
     print('Total samples: {}'.format(str(pred_class.shape[0])))
-    tn, fp, fn, tp = confusion_matrix(true_class,pred_class).ravel()
+    tn, fp, fn, tp = confusion_matrix(true_class, pred_class).ravel()
     roc = roc_auc_score(true_class,pred_class) * 100.0
     mcc = matthews_corrcoef(true_class,pred_class)
     acc = (tp + tn) / (tn + fp + fn + tp + 0.0) * 100.0
@@ -122,6 +124,6 @@ print("\nACC\tMCC\tROC\tsens\tspec\tprec")
 print("{}\t{}\t{}\t{}\t{}\t{}".format(np.round(BESTS[0],4),np.round(BESTS[1],4),np.round(BESTS[2],4)\
                                         ,np.round(BESTS[3],4),np.round(BESTS[4],4),np.round(BESTS[5],4)))
 
-with open('AMPscanner.log', 'a+') as f:
+with open(log_path, 'a+') as f:
     f.write('{}\n'.format(BESTS_MODEL))
     f.write('{}\t{}\n'.format(np.round(BESTS[0], 4), np.round(BESTS[1], 4)))
