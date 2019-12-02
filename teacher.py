@@ -1,10 +1,15 @@
 import torch
 from bert.train.self_training import teacher
 import argparse
+import os, sys
+import datetime
 
 parser = argparse.ArgumentParser(description='teacher')
 parser.add_argument('--teacher-checkpoint', '-t', dest='teacher', required=True, help='the path of teacher model')
 parser.add_argument('--data-path', dest='data_path', required=True, help='the path of data file')
+parser.add_argument('--confidence', '-c', dest='confidence', help='the confidence of the pseudo sequence', type=float, default=0.4)
+parser.add_argument('--pseudo-data-path', dest='pseudo', help='The path of pseudo data file', type=str, default='pseudo_data.txt')
+parser.add_argument('--dictionary-path', dest='dictionary_path', help='the path of dictionary file', type=str, default='dic/dic.txt')
 parser.add_argument('--batch-size', '-b', dest='batch_size', help='the batch size', default=32, type=int)
 parser.add_argument('--layers-count', dest='layers_count', help='The layers count', default=2, type=int)
 parser.add_argument('--hidden-size', dest='hidden_size', help='The hidden size', default=128, type=int)
@@ -16,6 +21,8 @@ parser.add_argument('--vocabulary-size', dest='vocabulary_size', help='The size 
 parser.add_argument('--max-len', dest='max_len', help='The maximun of input length', default=1024, type=int)
 args = parser.parse_args()
 
+confidence = args.confidence
+pseudo_data_path = args.pseudo
 teacher_checkpoint = args.teacher
 data_dir = None
 data_path = args.data_path
@@ -43,5 +50,6 @@ if __name__ == '__main__':
     teacher(data_dir, data_path, dictionary_path,\
             dataset_limit, vocabulary_size, batch_size, max_len, device,\
             layers_count, hidden_size, heads_count, d_ff, dropout_prob,\
-            log_output, teacher_checkpoint, config, run_name
+            log_output, teacher_checkpoint, config, run_name, confidence,\
+            pseudo_data_path
             )
