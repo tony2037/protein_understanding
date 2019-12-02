@@ -23,6 +23,16 @@ parser.add_argument('model_path', help='the path of pretrain bert model')
 parser.add_argument('input', help='the path of input file')
 parser.add_argument('output', help='The path of output file', default='encoded.np')
 parser.add_argument('seq_len', help='The sequence length', default=200)
+parser.add_argument('--dictionary-path', dest='dictionary_path', help='the path of dictionary file', type=str, default='dic/dic.txt')
+parser.add_argument('--batch-size', '-b', dest='batch_size', help='the batch size', default=1, type=int)
+parser.add_argument('--layers-count', dest='layers_count', help='The layers count', default=2, type=int)
+parser.add_argument('--hidden-size', dest='hidden_size', help='The hidden size', default=128, type=int)
+parser.add_argument('--heads-count', dest='heads_count', help='The heads count', default=2, type=int)
+parser.add_argument('--d-ff', dest='d_ff', help='The dff', default=128, type=int)
+parser.add_argument('--dropout', dest='dropout', help='The drop out probability', default=0.1, type=float)
+parser.add_argument('--run-name', dest='run_name', help='The run name', default='teacher', type=str)
+parser.add_argument('--vocabulary-size', dest='vocabulary_size', help='The size of vocabulary', default=30000, type=int)
+parser.add_argument('--max-len', dest='max_len', help='The maximun of input length', default=1024, type=int)
 args = parser.parse_args()
 checkpoint = args.model_path
 output = args.output
@@ -30,15 +40,15 @@ input_file = args.input
 seq_len = int(args.seq_len)
 
 data_dir = None
-dictionary_path = 'dic/dic.txt'
+dictionary_path = args.dictionary_path
 dataset_limit = None
-batch_size = 1
-max_len = 1024
-layers_count = 2
-hidden_size = 128
-heads_count = 2
-d_ff = 128
-dropout_prob = 0.1
+batch_size = args.batch_size
+max_len = args.max_len
+layers_count = args.layers_count
+hidden_size = args.hidden_size
+heads_count = args.heads_count
+d_ff = args.d_ff
+dropout_prob = args.dropout
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 config = None
 
