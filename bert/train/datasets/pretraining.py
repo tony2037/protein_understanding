@@ -37,7 +37,7 @@ class MaskedDocument:
     def __init__(self, sentences, vocabulary_size):
         self.sentences = sentences
         self.vocabulary_size = vocabulary_size
-        self.THRESHOLD = 0.01
+        self.THRESHOLD = 1
 
     def __getitem__(self, item):
         """Get a masked sentence and the corresponding target.
@@ -49,19 +49,36 @@ class MaskedDocument:
         masked_sentence = []
         target_sentence = []
 
+        """
+        consecutive_num = 2
+        start_index = randint(0, len(sentence) - consecutive_num)
+
+        masked_sentence = sentence.copy()
+        target_sentence = sentence.copy()
+
+        for i in range(consecutive_num):
+            masked_sentence[start_index + i] = MASK_INDEX
+            target_sentence[start_index + i] = sentence[start_index + i]
+        """
         for token_index in sentence:
             r = random()
             if r < self.THRESHOLD:  # we mask 15% of all tokens in each sequence at random.
+                masked_sentence.append(token_index)
+                target_sentence.append(token_index)
+
+                """
                 if r < self.THRESHOLD * 0.8:  # 80% of the time: Replace the word with the [MASK] token
                     masked_sentence.append(MASK_INDEX)
-                    target_sentence.append(token_index)
-                elif r < self.THRESHOLD * 0.9:  # 10% of the time: Replace the word with a random word
-                    random_token_index = randint(5, self.vocabulary_size-1)
-                    masked_sentence.append(random_token_index)
                     target_sentence.append(token_index)
                 else:  # 10% of the time: Keep the word unchanged
                     masked_sentence.append(token_index)
                     target_sentence.append(token_index)
+
+                elif r < self.THRESHOLD * 0.9:  # 10% of the time: Replace the word with a random word
+                    random_token_index = randint(5, self.vocabulary_size-1)
+                    masked_sentence.append(random_token_index)
+                    target_sentence.append(token_index)
+                """
             else:
                 masked_sentence.append(token_index)
                 target_sentence.append(PAD_INDEX)
