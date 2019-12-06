@@ -50,14 +50,16 @@ class MaskedDocument:
         target_sentence = []
 
         consecutive_num = 1
-        start_index = randint(0, len(sentence) - consecutive_num)
+        start_index = randint(1, len(sentence) - consecutive_num)
 
         masked_sentence = sentence.copy()
-        target_sentence = [PAD_INDEX] * len(masked_sentence)
+        target_sentence = sentence.copy() # [PAD_INDEX] * len(masked_sentence)
 
+        """
         for i in range(consecutive_num):
             masked_sentence[start_index + i] = MASK_INDEX
             target_sentence[start_index + i] = sentence[start_index + i]
+        """
         '''
         for token_index in sentence:
             r = random()
