@@ -34,7 +34,7 @@ RUN_NAME_FORMAT = (
 def pretrain(data_dir, train_path, val_path, dictionary_path,
              dataset_limit, vocabulary_size, batch_size, max_len, epochs, clip_grads, device,
              layers_count, hidden_size, heads_count, d_ff, dropout_prob,
-             log_output, checkpoint_dir, print_every, save_every, config, run_name=None, **_):
+             log_output, checkpoint_dir, print_every, save_every, config, run_name=None, pretrained_model = None, **_):
 
     random.seed(0)
     np.random.seed(0)
@@ -63,6 +63,9 @@ def pretrain(data_dir, train_path, val_path, dictionary_path,
 
     logger.info('Building model...')
     model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size)
+    if pretrained_model is not None:
+        # Load the weights
+        model = stateLoading(model, pretrained_model)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(
