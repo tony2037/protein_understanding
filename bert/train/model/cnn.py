@@ -2,13 +2,22 @@ def build_pcnn(vocabulary_size, hidden_size, in_channels, out_channels, kernel_s
 
     token_embedding = nn.Embedding(num_embeddings=vocabulary_size, embedding_dim=hidden_size)
 
-    return P_CNN(token_embedding, hidden_size, in_channels, out_channels, kernel_sizes, acts)
+    return P_CNN(vocabulary_size, hidden_size, token_embedding, in_channels, out_channels, kernel_sizes, acts)
 
 
 class P_CNN(nn.Module):
 
-    def __init__(self, vocabulary_size, hidden_size, token_embedding, hidden_size, in_channels, out_channels, kernel_sizes, acts):
+    def __init__(self, vocabulary_size, hidden_size, token_embedding, in_channels, out_channels, kernel_sizes, acts):
         super(P_CNN, self).__init__()
+        """
+        Protein CNN
+
+        args:
+            @ hidden_size (int): The hidden size shall be the output hidden size, which is, out_channels[-1]
+                                , and the self.token_prediction_layer would predict tokens at every position.
+            @ token_embedding (nn.Module): The model of encoding, no matter one-hot or embedding, you can specific it.
+
+        """
 
         self.token_embedding = token_embedding
         self.token_prediction_layer = nn.Linear(hidden_size, vocabulary_size)
@@ -16,7 +25,7 @@ class P_CNN(nn.Module):
 
     def forward(self, sequences):
         
-        token_embedded = self.token_prediction_layer(sequences)
+        token_embedded = self.token_embedding(sequences)
         encoded_sources = self.cnn(token_embedded)
 
         token_predictions = self.token_prediction_layer(encoded_sources)
