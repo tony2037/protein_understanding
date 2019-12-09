@@ -23,11 +23,10 @@ parser.add_argument('--run-name', dest='run_name', help='The run name', default=
 parser.add_argument('--vocabulary-size', dest='vocabulary_size', help='The size of vocabulary', default=30000, type=int)
 parser.add_argument('--max-len', dest='max_len', help='The maximun of input length', default=1024, type=int)
 parser.add_argument('--learning-rate', '-lr', dest='lr', help='Learning rate', type=float, default=0.001)
-parser.add_argument('--Pretrained-model', dest='pretrained_model', help='The path of pretrained model', default=None)
+parser.add_argument('--pretrained-model', dest='pretrained_model', help='The path of pretrained model', default=None)
 args = parser.parse_args()
 
 data_dir = None
-# train_dir = 'data/AMP/AMP.total_1121.1e-3.pretrain.txt'
 train_dir = args.train_dir
 val_path = args.val_path
 dictionary_path = args.dictionary_path
@@ -61,5 +60,5 @@ if __name__ == '__main__':
             dataset_limit, vocabulary_size, batch_size, max_len, epochs,\
             clip_grads, device, layers_count, hidden_size, heads_count,\
             d_ff, dropout_prob, log_output, checkpoint_dir, print_every,\
-            save_every, pretrained_model, config
+            save_every, config, run_name, pretrained_model
             )
