@@ -65,6 +65,7 @@ def pretrain(data_dir, train_path, val_path, dictionary_path,
     model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size)
     if pretrained_model is not None:
         # Load the weights
+        logger.info('Load the weights from %s' % pretrained_model)
         model = stateLoading(model, pretrained_model)
 
     logger.info(model)
@@ -88,10 +89,7 @@ def pretrain(data_dir, train_path, val_path, dictionary_path,
         batch_size=batch_size,
         shuffle=True,
         collate_fn=pretraining_collate_function)
-    """
-    optimizer = NoamOptimizer(model.parameters(),
-                              d_model=hidden_size, factor=2, warmup_steps=10000, betas=(0.9, 0.999), weight_decay=0.01)
-    """
+
     optimizer = Adam(model.parameters())
     scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3, verbose=True)
 
@@ -281,11 +279,10 @@ def finetune(pretrained_checkpoint,
     trainer.run(epochs=epochs)
     return trainer
 
-def finetuneSPS(pretrained_checkpoint,
-             data_dir, train_path, val_path, dictionary_path,
-             vocabulary_size, batch_size, max_len, epochs, lr, clip_grads, device,
-             layers_count, hidden_size, heads_count, d_ff, dropout_prob,
-             log_output, checkpoint_dir, print_every, save_every, config, run_name=None, num_classes=2, **_):
+def pretrain_cnn(data_dir, train_path, val_path, dictionary_path,
+             dataset_limit, vocabulary_size, batch_size, epochs, clip_grads, device,
+             hidden_size,
+             log_output, checkpoint_dir, print_every, save_every, config, run_name=None, pretrained_model = None, **_):
 
     random.seed(0)
     np.random.seed(0)
@@ -295,7 +292,7 @@ def finetuneSPS(pretrained_checkpoint,
     val_path = val_path if data_dir is None else join(data_dir, val_path)
     dictionary_path = dictionary_path if data_dir is None else join(data_dir, dictionary_path)
 
-    run_name = run_name if run_name is not None else make_run_name(RUN_NAME_FORMAT, phase='finetune', config=config)
+    run_name = run_name if run_name is not None else make_run_name(RUN_NAME_FORMAT, phase='pretrain', config=config)
     logger = make_logger(run_name, log_output)
     logger.info('Run name : {run_name}'.format(run_name=run_name))
     logger.info(config)
@@ -308,35 +305,43 @@ def finetuneSPS(pretrained_checkpoint,
     logger.info('dictionary vocabulary : {vocabulary_size} tokens'.format(vocabulary_size=vocabulary_size))
 
     logger.info('Loading datasets...')
-    train_dataset = SST2IndexedDataset(data_path=train_path, dictionary=dictionary)
-    val_dataset = SST2IndexedDataset(data_path=val_path, dictionary=dictionary)
+
+    from .datasets.autoencoder_datasets import AutoencoderDataset
+    train_dataset = AutoencoderDataset(data_path=train_path, dictionary=dictionary, dataset_limit=dataset_limit)
+    val_dataset = AutoencoderDataset(data_path=val_path, dictionary=dictionary, dataset_limit=dataset_limit)
     logger.info('Train dataset size : {dataset_size}'.format(dataset_size=len(train_dataset)))
 
+    from .model.cnn import build_pcnn, MLMLossModel, mlm_accuracy
     logger.info('Building model...')
-    pretrained_model = build_model(layers_count, hidden_size, heads_count, d_ff, dropout_prob, max_len, vocabulary_size)
-    #pretrained_model.load_state_dict(torch.load(pretrained_checkpoint, map_location='cpu')['state_dict'])
-    pretrained_model = stateLoading(pretrained_model, pretrained_checkpoint)
-
-    model = FineTuneModel(pretrained_model, hidden_size, num_classes=num_classes)
+    model = build_pcnn(vocabulary_size, hidden_size, in_channels, out_channels, kernel_sizes, acts)
+    if pretrained_model is not None:
+        # Load the weights
+        model = stateLoading(model, pretrained_model)
 
     logger.info(model)
     logger.info('{parameters_count} parameters'.format(
         parameters_count=sum([p.nelement() for p in model.parameters()])))
 
-    loss_model = ClassificationLossModel(model)
-    metric_functions = [classification_accuracy]
+    loss_model = MLMLossModel(model)
+    if torch.cuda.device_count() > 1:
+        loss_model = DataParallel(loss_model, output_device=1)
+
+    metric_functions = [mlm_accuracy]
 
     train_dataloader = DataLoader(
         train_dataset,
         batch_size=batch_size,
-        collate_fn=classification_collate_function)
+        shuffle=True,
+        collate_fn=pretraining_collate_function)
 
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
-        collate_fn=classification_collate_function)
+        shuffle=True,
+        collate_fn=pretraining_collate_function)
 
-    optimizer = Adam(model.parameters(), lr=lr)
+    optimizer = Adam(model.parameters())
+    scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3, verbose=True)
 
     checkpoint_dir = make_checkpoint_dir(checkpoint_dir, run_name, config)
 
@@ -352,7 +357,10 @@ def finetuneSPS(pretrained_checkpoint,
         checkpoint_dir=checkpoint_dir,
         print_every=print_every,
         save_every=save_every,
-        device=device
+        device=device,
+        scheduler=scheduler,
+        monitor='val_loss',
+        comment=run_name
     )
 
     trainer.run(epochs=epochs)
