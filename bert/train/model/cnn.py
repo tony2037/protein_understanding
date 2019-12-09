@@ -1,9 +1,50 @@
+from torch import nn
+from bert.preprocess import PAD_INDEX
+
 def build_pcnn(vocabulary_size, hidden_size, in_channels, out_channels, kernel_sizes, acts):
 
     token_embedding = nn.Embedding(num_embeddings=vocabulary_size, embedding_dim=hidden_size)
 
     return P_CNN(vocabulary_size, hidden_size, token_embedding, in_channels, out_channels, kernel_sizes, acts)
 
+def mlm_accuracy(predictions, targets):
+    mlm_predictions = predictions
+    mlm_targets = targets
+
+    relevent_indexes = np.where(mlm_targets != PAD_INDEX)
+    relevent_predictions = mlm_predictions[relevent_indexes]
+    relevent_targets = mlm_targets[relevent_indexes]
+
+    corrects = np.equal(relevent_predictions, relevent_targets)
+    return corrects.mean()
+
+class MLMLossModel(nn.Module):
+
+    def __init__(self, model):
+        super(MLMLossModel, self).__init__()
+
+        self.model = model
+        self.mlm_loss_function = nn.CrossEntropyLoss(ignore_index=PAD_INDEX)
+
+    def forward(self, inputs, targets):
+
+        outputs = self.model(inputs)
+
+        mlm_outputs, _ = outputs
+        mlm_targets = targets
+
+        predictions = mlm_predictions = mlm_outputs.argmax(dim=2)
+
+        batch_size, seq_len, vocabulary_size = mlm_outputs.size()
+
+        mlm_outputs_flat = mlm_outputs.view(batch_size * seq_len, vocabulary_size)
+        mlm_targets_flat = mlm_targets.view(batch_size * seq_len)
+
+        mlm_loss = self.mlm_loss_function(mlm_outputs_flat, mlm_targets_flat)
+
+        loss = mlm_loss
+
+        return predictions, loss.unsqueeze(dim=0)
 
 class P_CNN(nn.Module):
 
