@@ -1,5 +1,5 @@
- 
 import torch
+from torch import nn
 import datetime
 import argparse
 
@@ -58,7 +58,9 @@ if __name__ == '__main__':
     #build_dictionary('data/train.txt', 'dic/dic.txt')
     pretrain_cnn(data_dir, train_dir, val_path, dictionary_path,\
             dataset_limit, vocabulary_size, batch_size, epochs,\
-            clip_grads, device, hidden_size,\
+            clip_grads, device,hidden_size,\
+            [hidden_size, hidden_size, hidden_size], [hidden_size, hidden_size, hidden_size],\
+            [15, 13, 11], [nn.ReLU(),nn.ReLU(),nn.ReLU()],\
             log_output, checkpoint_dir, print_every,\
             save_every, config, run_name, pretrained_model
             )

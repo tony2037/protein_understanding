@@ -281,7 +281,7 @@ def finetune(pretrained_checkpoint,
 
 def pretrain_cnn(data_dir, train_path, val_path, dictionary_path,
              dataset_limit, vocabulary_size, batch_size, epochs, clip_grads, device,
-             hidden_size,
+             hidden_size, in_channels, out_channels, kernel_sizes, acts,
              log_output, checkpoint_dir, print_every, save_every, config, run_name=None, pretrained_model = None, **_):
 
     random.seed(0)
@@ -332,13 +332,13 @@ def pretrain_cnn(data_dir, train_path, val_path, dictionary_path,
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=pretraining_collate_function)
+        collate_fn=train_dataset.collate_function)
 
     val_dataloader = DataLoader(
         val_dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=pretraining_collate_function)
+        collate_fn=val_dataset.collate_function)
 
     optimizer = Adam(model.parameters())
     scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3, verbose=True)

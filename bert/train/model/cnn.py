@@ -1,5 +1,6 @@
 from torch import nn
 from bert.preprocess import PAD_INDEX
+import numpy as np
 
 def build_pcnn(vocabulary_size, hidden_size, in_channels, out_channels, kernel_sizes, acts):
 
@@ -62,16 +63,17 @@ class P_CNN(nn.Module):
 
         self.token_embedding = token_embedding
         self.token_prediction_layer = nn.Linear(hidden_size, vocabulary_size)
-        self.cnn = CNN(in_channels, out_channels, kernel_size, acts)
+        self.cnn = CNN(in_channels, out_channels, kernel_sizes, acts)
 
-    def forward(self, sequences):
+    def forward(self, inputs):
         
+        sequences, segments = inputs
         token_embedded = self.token_embedding(sequences)
         encoded_sources = self.cnn(token_embedded)
 
         token_predictions = self.token_prediction_layer(encoded_sources)
 
-        return token_preditoins, encoded_sources
+        return token_predictions, encoded_sources
 
         
 class CNN(nn.Module):
@@ -93,7 +95,7 @@ class CNN(nn.Module):
         out = x.transpose(1, 2)
         for cnn_layer in self.cnn_layers:
             out = cnn_layer(out)
-        out = x.transpose(1, 2)
+        out = out.transpose(1, 2)
 
         return out
 

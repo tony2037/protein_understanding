@@ -99,3 +99,33 @@ class AutoencoderDataset:
 
     def __len__(self):
         return self.dataset_size
+
+    @staticmethod
+    def collate_function(batch):
+
+        targets = [target for _, target in batch]
+        longest_target = max(targets, key=lambda target: len(target))
+        max_length = len(longest_target)
+
+        padded_sequences = []
+        padded_segments = []
+        padded_targets = []
+
+        for (sequence, segment), target in batch:
+            length = len(sequence)
+            padding = [PAD_INDEX] * (max_length - length)
+            padded_sequence = sequence + padding
+            padded_segment = segment + padding
+            padded_target = target + padding
+
+            padded_sequences.append(padded_sequence)
+            padded_segments.append(padded_segment)
+            padded_targets.append(padded_target)
+
+        count = 0
+        for target in targets:
+            for token in target:
+                if token != PAD_INDEX:
+                    count += 1
+
+        return (padded_sequences, padded_segments), padded_targets, count
