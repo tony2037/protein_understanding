@@ -174,3 +174,43 @@ class AMPscanner_SEnet_poyu(nn.Module):
         loss = F.binary_cross_entropy(out, targets)
         prediction = (out >= 0.5).to(torch.int64)
         return prediction, loss.unsqueeze(dim=0)
+
+class AMPscanner_BERT(nn.Module):
+
+    def __init__(self, model, hidden_size, embedding_vector_length):
+        super(AMPscanner_BERT, self).__init__()
+        self.model = model
+
+        self.conv1 = nn.Conv1d(200, 100, 15)
+        self.max1 = nn.MaxPool1d(5)
+        # self.conv2 = nn.Conv1d(100, 50, 13)
+        # self.max2 = nn.MaxPool1d(5)
+        self.linear = nn.Linear(3700, 1)
+
+        self.sigmoid = nn.Sigmoid()
+        self.relu = nn.ReLU()
+
+    def forward(self, inputs, targets):
+        
+        # padded_sequences, padded_segments = inputs
+        # out = self.embedding(padded_sequences)
+        _, _, out = self.model(inputs)
+
+        
+        out = out.transpose(1, 2)
+        out = self.conv1(out)
+        out = self.max1(out)
+        # out = self.conv2(out)
+        # out = self.max2(out)
+        out = out.transpose(1, 2)
+    
+        # out = self.linear_1(out)
+        out = out.flatten(start_dim=1, end_dim=2)
+        # out = self.linear_2(out)
+        out = self.linear(out)
+        out = self.sigmoid(out)
+        out = torch.squeeze(out)
+        targets = targets.to(torch.float32)
+        loss = F.binary_cross_entropy(out, targets)
+        prediction = (out >= 0.5).to(torch.int64)
+        return prediction, loss.unsqueeze(dim=0)

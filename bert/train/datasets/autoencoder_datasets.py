@@ -46,7 +46,10 @@ class MaskedDocument:
         sentence = self.sentences[item]
 
         masked_sentence = sentence.copy()
+        #masked_index = randint(0, len(masked_sentence)-1)
+        #masked_sentence[masked_index] = MASK_INDEX
         target_sentence = sentence.copy()
+        #target_sentence[masked_index] = sentence[masked_index]
 
         return masked_sentence, target_sentence
 

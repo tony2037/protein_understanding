@@ -1,4 +1,4 @@
-from bert.train.train_AMPscanner import finetuneAMPscanner_SEnet
+from bert.train.train_AMPscanner import finetuneAMPscanner_BERT
 
 import torch
 import datetime
@@ -10,18 +10,18 @@ val_path = 'data/AMP/val.txt'
 dictionary_path = 'dic/dic.txt'
 checkpoint_dir = 'data/AMP/augment'
 dataset_limit = None
-epochs = 50
+epochs = 20
 batch_size = 32
 print_every = 1
 save_every = 5
 vocabulary_size = 30000
 max_len = 1024
-lr = 0.001
+lr = 0.0001
 clip_grads = 'store_true'
-layers_count = 2
-hidden_size = 128
-heads_count = 2
-d_ff = 128
+layers_count = 1
+hidden_size = 200
+heads_count = 4
+d_ff = 200
 dropout_prob = 0.1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 config = None
@@ -37,7 +37,7 @@ nlstm = 100
 ndrop = 0.1
 
 if __name__ == '__main__':
-    finetuneAMPscanner_SEnet(pretrained_checkpoint,\
+    finetuneAMPscanner_BERT(pretrained_checkpoint,\
             data_dir, train_path, val_path, dictionary_path,\
             vocabulary_size, batch_size, max_len, epochs,\
             lr, clip_grads, device, layers_count, hidden_size, heads_count,\

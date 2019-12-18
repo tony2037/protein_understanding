@@ -1,6 +1,55 @@
 from torch import nn
 from bert.preprocess import PAD_INDEX
 import numpy as np
+from .bert import build_model
+from .embeddings import PositionalEmbedding, SegmentEmbedding
+from .transformer import TransformerEncoder
+from ..utils.pad import pad_masking
+
+def build_cbert(hidden_size, vocabulary_size, in_channels, out_channels, kernel_sizes, acts,\
+                layers_count, heads_count, d_ff, dropout_prob, max_len):
+    token_embedding = nn.Embedding(num_embeddings=vocabulary_size, embedding_dim=hidden_size)
+    positional_embedding = PositionalEmbedding(max_len=1024, hidden_size=hidden_size)
+    segment_embedding = SegmentEmbedding(hidden_size=hidden_size)
+    encoder = TransformerEncoder(
+        layers_count=layers_count,
+        d_model=hidden_size,
+        heads_count=heads_count,
+        d_ff=d_ff,
+        dropout_prob=dropout_prob)
+    return CBERT(encoder, token_embedding, positional_embedding, segment_embedding,\
+            hidden_size, vocabulary_size,\
+            in_channels, out_channels, kernel_sizes, acts)
+
+class CBERT(nn.Module):
+
+    def __init__(self, encoder, token_embedding, positional_embedding, segment_embedding,\
+            hidden_size, vocabulary_size,\
+            in_channels, out_channels, kernel_sizes, acts):
+        super(CBERT, self).__init__()
+
+        self.encoder = encoder
+        self.token_embedding = token_embedding
+        self.positional_embedding = positional_embedding
+        self.segment_embedding = segment_embedding
+        self.token_prediction_layer = nn.Linear(hidden_size, vocabulary_size)
+        self.cnn = CNN(in_channels, out_channels, kernel_sizes, acts)
+
+    def forward(self, inputs):
+        sequence, segment = inputs
+        token_embedded = self.token_embedding(sequence)
+        # positional_embedded = self.positional_embedding(sequence)
+        # segment_embedded = self.segment_embedding(segment)
+        # embedded_sources = token_embedded + positional_embedded + segment_embedded
+        embedded_sources = token_embedded # + positional_embedded
+
+        embedded_sources = self.cnn(embedded_sources)
+
+        mask = pad_masking(sequence)
+        encoded_sources = self.encoder(embedded_sources, mask)
+        token_predictions = self.token_prediction_layer(encoded_sources)
+
+        return token_predictions, token_predictions, encoded_sources
 
 def build_pcnn(vocabulary_size, hidden_size, in_channels, out_channels, kernel_sizes, acts):
 
